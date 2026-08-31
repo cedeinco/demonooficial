@@ -1143,7 +1143,10 @@ function formatoValorConsulta(q, val) {
     return '<span class="cell-empty">N/A</span>';
   }
   if (q.type === 'file') {
-    return '<a href="'+escapeHtml(String(val))+'" target="_blank">Ver archivo ↗</a>';
+    var urls = String(val).split(',').map(function(s){return s.trim();}).filter(Boolean);
+    return urls.map(function(u, idx){
+      return '<a href="'+escapeHtml(u)+'" target="_blank">Ver archivo'+(urls.length>1?(' '+(idx+1)):'')+' ↗</a>';
+    }).join('<br>');
   }
   return escapeHtml(String(val));
 }
@@ -1276,9 +1279,7 @@ function guardarFichaCaracterizacion(consecutivo) {
       .then(function(resp){
         if (!resp.ok) { msg.textContent = resp.error || 'No se pudo guardar.'; msg.classList.add('err'); return; }
         msg.textContent = '✅ Ficha guardada correctamente.'; msg.classList.add('ok');
-        CARAC_CACHE[consecutivo] = CARAC_CACHE[consecutivo] || {};
-        CARAC_CACHE[consecutivo].caracterizacion = Object.assign({}, CARAC_CACHE[consecutivo].caracterizacion, respuestas, { EstadoFicha: 'Completada', PDF_Ficha: resp.pdfUrl || (CARAC_CACHE[consecutivo].caracterizacion||{}).PDF_Ficha });
-        setTimeout(function(){ mostrarFichaConsulta(consecutivo); }, 900);
+        setTimeout(function(){ abrirFichaCaracterizacion(consecutivo); }, 900);
       })
       .catch(function(err){ msg.textContent = 'Error de conexión: ' + err.message; msg.classList.add('err'); });
   });
