@@ -236,9 +236,22 @@ input[type="file"]{
   .login-body{padding:26px 22px 30px;}
   .login-card{width:100%;}
 }
+
+/* ===== OVERLAY DE PANTALLA COMPLETA (guardando ficha) ===== */
+.global-overlay{position:fixed;inset:0;background:rgba(246,244,238,0.94);z-index:9999;
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.global-overlay.show{display:flex;}
+.global-overlay .loading-spinner{margin:0;}
+.global-overlay-text{font-size:15px;font-weight:700;color:var(--green-text);text-align:center;padding:0 24px;}
 </style>
 </head>
 <body>
+
+<div class="global-overlay" id="globalOverlay">
+  <div class="loading-spinner"></div>
+  <div class="global-overlay-text" id="globalOverlayText">Guardando...</div>
+</div>
+
 
 <!-- ============ LOGIN ============ -->
 <div class="login-wrap" id="loginWrap">
@@ -1073,6 +1086,7 @@ function seccionVisible(showIf, nivel) {
 
 function renderCampoCaracterizacion(q, valorActual) {
   var val = valorActual || '';
+  if (q.type === 'date' && val) { val = soloFechaISO(val); }
   if (q.type === 'text' || q.type === 'number' || q.type === 'date') {
     return '<input type="'+q.type+'" id="carac-'+q.id+'" value="'+escapeHtml(String(val))+'">';
   }
@@ -1138,9 +1152,24 @@ function renderFormularioCaracterizacion(consecutivo, datosExistentes) {
 
 var CARAC_CACHE = {};
 
+function soloFechaISO(val) {
+  // Convierte "2026-08-20T05:00:00.000Z" (o cualquier ISO) a "2026-08-20"
+  return String(val).split('T')[0];
+}
+
+function fechaLegible(val) {
+  var soloFecha = soloFechaISO(val);
+  var partes = soloFecha.split('-');
+  if (partes.length === 3) return partes[2] + '/' + partes[1] + '/' + partes[0];
+  return soloFecha;
+}
+
 function formatoValorConsulta(q, val) {
   if (val === undefined || val === null || String(val).trim() === '') {
     return '<span class="cell-empty">N/A</span>';
+  }
+  if (q.type === 'date') {
+    return escapeHtml(fechaLegible(val));
   }
   if (q.type === 'file') {
     var urls = String(val).split(',').map(function(s){return s.trim();}).filter(Boolean);
@@ -1238,7 +1267,7 @@ function leerArchivosBase64(inputId, multiple, etiquetaCampo) {
 
 function guardarFichaCaracterizacion(consecutivo) {
   var msg = document.getElementById('caracMsg-' + consecutivo);
-  msg.textContent = 'Guardando...'; msg.className = 'approval-msg';
+  msg.textContent = ''; msg.className = 'approval-msg';
 
   var respuestas = {};
   var pendientesArchivos = [];
@@ -1263,8 +1292,11 @@ function guardarFichaCaracterizacion(consecutivo) {
     }
   });
 
+  mostrarOverlay('Guardando ficha...');
+
   Promise.all(pendientesArchivos).then(function(){
     if (erroresArchivos.length) {
+      ocultarOverlay();
       msg.textContent = '⚠️ ' + erroresArchivos.join(' | ');
       msg.classList.add('err');
       return;
@@ -1277,14 +1309,40 @@ function guardarFichaCaracterizacion(consecutivo) {
     })
       .then(function(r){ return r.json(); })
       .then(function(resp){
-        if (!resp.ok) { msg.textContent = resp.error || 'No se pudo guardar.'; msg.classList.add('err'); return; }
-        msg.textContent = '✅ Ficha guardada correctamente.'; msg.classList.add('ok');
-        setTimeout(function(){ abrirFichaCaracterizacion(consecutivo); }, 900);
+        if (!resp.ok) {
+          ocultarOverlay();
+          msg.textContent = resp.error || 'No se pudo guardar.'; msg.classList.add('err');
+          return;
+        }
+        actualizarOverlay('✅ Registro guardado con éxito');
+        setTimeout(function(){
+          ocultarOverlay();
+          cerrarTodosLosAcordeones();
+        }, 1300);
       })
-      .catch(function(err){ msg.textContent = 'Error de conexión: ' + err.message; msg.classList.add('err'); });
+      .catch(function(err){
+        ocultarOverlay();
+        msg.textContent = 'Error de conexión: ' + err.message; msg.classList.add('err');
+      });
   });
 }
 
+function mostrarOverlay(texto) {
+  document.getElementById('globalOverlayText').textContent = texto;
+  document.getElementById('globalOverlay').classList.add('show');
+}
+function actualizarOverlay(texto) {
+  document.getElementById('globalOverlayText').textContent = texto;
+}
+function ocultarOverlay() {
+  document.getElementById('globalOverlay').classList.remove('show');
+}
+
+function cerrarTodosLosAcordeones() {
+  document.querySelectorAll('.acc-header.open').forEach(function(h){ h.classList.remove('open'); });
+  document.querySelectorAll('.acc-detail.open').forEach(function(d){ d.classList.remove('open'); });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 function toggleAcc(id) {
   var header = document.getElementById("acchead-" + id);
