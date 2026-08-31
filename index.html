@@ -203,6 +203,30 @@ td a:hover{text-decoration:underline;}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 
+/* ===== FICHA DE CARACTERIZACIÓN — checkboxes, archivos y grilla responsive ===== */
+input[type="checkbox"], input[type="radio"]{
+  width:auto;height:16px;padding:0;border:none;background:none;box-shadow:none;
+  accent-color:var(--terracotta);margin:0;flex-shrink:0;cursor:pointer;
+}
+input[type="file"]{
+  padding:8px 10px;font-size:12px;background:#fbfaf6;cursor:pointer;
+}
+.carac-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;}
+.carac-grid .detail-item-full{grid-column:1 / -1;}
+.carac-check-list{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:6px;background:#fff;max-height:220px;overflow-y:auto;}
+.carac-check-item{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:400;
+  text-transform:none;letter-spacing:0;padding:7px 8px;border-radius:6px;cursor:pointer;transition:background .12s;}
+.carac-check-item:hover{background:#f1efe8;}
+@media(max-width:720px){
+  .carac-grid{grid-template-columns:1fr;gap:12px;}
+  .carac-check-item{padding:9px 8px;font-size:13px;}
+  .carac-check-list{max-height:none;}
+  .approval-box .btn-primary{width:100%;}
+  .detail-label{font-size:10.5px;}
+}
+
+
 @media(max-width:720px){
   .topbar{padding:0 16px;}
   .topbar-sub{display:none;}
@@ -1060,9 +1084,9 @@ function renderCampoCaracterizacion(q, valorActual) {
   }
   if (q.type === 'checkbox') {
     var seleccionados = String(val).split(',').map(function(s){return s.trim();});
-    return '<div>' + q.options.map(function(o, idx){
+    return '<div class="carac-check-list">' + q.options.map(function(o, idx){
       var checked = seleccionados.indexOf(o) !== -1 ? ' checked' : '';
-      return '<label style="display:block;font-size:12.5px;font-weight:400;text-transform:none;letter-spacing:0;margin-bottom:3px;">' +
+      return '<label class="carac-check-item">' +
         '<input type="checkbox" class="carac-chk-'+q.id+'" value="'+escapeHtml(o)+'"'+checked+'> '+escapeHtml(o)+'</label>';
     }).join('') + '</div>';
   }
@@ -1084,11 +1108,12 @@ function renderFormularioCaracterizacion(consecutivo, datosExistentes) {
 
   var html = Object.keys(secciones).sort(function(a,b){return a-b;}).map(function(sec){
     var campos = secciones[sec].map(function(q){
-      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(q.label)+(q.required?' *':'')+'</div>' +
+      var esFull = (q.type === 'textarea' || q.type === 'checkbox' || q.type === 'file');
+      return '<div class="detail-item'+(esFull?' detail-item-full':'')+'"><div class="detail-label">'+escapeHtml(q.label)+(q.required?' *':'')+'</div>' +
         renderCampoCaracterizacion(q, (datosExistentes||{})[q.id]) + '</div>';
     }).join('');
     return '<div class="detail-section"><div class="detail-section-title">'+CARACT_SECTION_TITLES[sec]+'</div>' +
-      '<div class="detail-grid">'+campos+'</div></div>';
+      '<div class="carac-grid">'+campos+'</div></div>';
   }).join('');
 
   return '<div id="caracForm-'+consecutivo+'">' + html +
