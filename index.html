@@ -223,6 +223,7 @@ input[type="file"]{
   .carac-check-item{padding:9px 8px;font-size:13px;}
   .carac-check-list{max-height:none;}
   .approval-box .btn-primary{width:100%;}
+  .approval-box .btn{width:100%;margin-top:8px;margin-left:0 !important;display:block;}
   .detail-label{font-size:10.5px;}
 }
 
@@ -1116,9 +1117,61 @@ function renderFormularioCaracterizacion(consecutivo, datosExistentes) {
       '<div class="carac-grid">'+campos+'</div></div>';
   }).join('');
 
+  var yaTeniaDatos = datosExistentes && String(datosExistentes.EstadoFicha || '').trim() === 'Completada';
+  var botonCancelar = yaTeniaDatos
+    ? ' <button class="btn" style="width:auto;background:#fff;border:1px solid var(--line);color:var(--muted);" onclick="mostrarFichaConsulta(\''+consecutivo+'\')">↩ Cancelar</button>'
+    : '';
+
   return '<div id="caracForm-'+consecutivo+'">' + html +
     '<div style="margin-top:14px;"><button class="btn btn-primary" style="width:auto;" onclick="guardarFichaCaracterizacion(\''+consecutivo+'\')">💾 Guardar ficha</button>' +
+    botonCancelar +
     '<div class="approval-msg" id="caracMsg-'+consecutivo+'"></div></div></div>';
+}
+
+var CARAC_CACHE = {};
+
+function formatoValorConsulta(q, val) {
+  if (val === undefined || val === null || String(val).trim() === '') {
+    return '<span class="cell-empty">N/A</span>';
+  }
+  if (q.type === 'file') {
+    return '<a href="'+escapeHtml(String(val))+'" target="_blank">Ver archivo ↗</a>';
+  }
+  return escapeHtml(String(val));
+}
+
+function renderFichaConsulta(consecutivo, datos) {
+  var nivel = evaluarNivelVinculo(datos || {});
+  var secciones = {};
+  CARACT_QUESTIONS.forEach(function(q){
+    if (!seccionVisible(q.showIf, nivel)) return;
+    secciones[q.section] = secciones[q.section] || [];
+    secciones[q.section].push(q);
+  });
+
+  var html = Object.keys(secciones).sort(function(a,b){return a-b;}).map(function(sec){
+    var campos = secciones[sec].map(function(q){
+      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(q.label)+'</div>' +
+        '<div class="detail-value">'+formatoValorConsulta(q, (datos||{})[q.id])+'</div></div>';
+    }).join('');
+    return '<div class="detail-section"><div class="detail-section-title">'+CARACT_SECTION_TITLES[sec]+'</div>' +
+      '<div class="carac-grid">'+campos+'</div></div>';
+  }).join('');
+
+  return '<div>' + html +
+    '<div style="margin-top:14px;"><button class="btn btn-primary" style="width:auto;" onclick="mostrarFormularioEdicion(\''+consecutivo+'\')">✏️ Volver a llenar</button></div></div>';
+}
+
+function mostrarFormularioEdicion(consecutivo) {
+  var contenedor = document.getElementById('caracContainer-' + consecutivo);
+  var datos = (CARAC_CACHE[consecutivo] || {}).caracterizacion || {};
+  contenedor.innerHTML = renderFormularioCaracterizacion(consecutivo, datos);
+}
+
+function mostrarFichaConsulta(consecutivo) {
+  var contenedor = document.getElementById('caracContainer-' + consecutivo);
+  var datos = (CARAC_CACHE[consecutivo] || {}).caracterizacion || {};
+  contenedor.innerHTML = renderFichaConsulta(consecutivo, datos);
 }
 
 // Se llama cuando el colaborador abre por primera vez el acordeón "Ficha de Caracterización"
@@ -1130,7 +1183,11 @@ function abrirFichaCaracterizacion(consecutivo) {
     .then(function(r){ return r.json(); })
     .then(function(resp){
       if (!resp.ok) { contenedor.innerHTML = '<div class="alert-error">⚠️ '+resp.error+'</div>'; return; }
-      contenedor.innerHTML = renderFormularioCaracterizacion(consecutivo, resp.caracterizacion);
+      CARAC_CACHE[consecutivo] = resp;
+      var yaCompletada = resp.caracterizacion && String(resp.caracterizacion.EstadoFicha || '').trim() === 'Completada';
+      contenedor.innerHTML = yaCompletada
+        ? renderFichaConsulta(consecutivo, resp.caracterizacion)
+        : renderFormularioCaracterizacion(consecutivo, resp.caracterizacion);
     })
     .catch(function(err){
       contenedor.innerHTML = '<div class="alert-error">⚠️ Error de conexión: '+err.message+'</div>';
@@ -1182,6 +1239,9 @@ function guardarFichaCaracterizacion(consecutivo) {
       .then(function(resp){
         if (!resp.ok) { msg.textContent = resp.error || 'No se pudo guardar.'; msg.classList.add('err'); return; }
         msg.textContent = '✅ Ficha guardada correctamente.'; msg.classList.add('ok');
+        CARAC_CACHE[consecutivo] = CARAC_CACHE[consecutivo] || {};
+        CARAC_CACHE[consecutivo].caracterizacion = Object.assign({}, CARAC_CACHE[consecutivo].caracterizacion, respuestas, { EstadoFicha: 'Completada' });
+        setTimeout(function(){ mostrarFichaConsulta(consecutivo); }, 900);
       })
       .catch(function(err){ msg.textContent = 'Error de conexión: ' + err.message; msg.classList.add('err'); });
   });
