@@ -1,1912 +1,1413 @@
-// ====== SHIM PARA pdf-lib EN APPS SCRIPT ======
-if (typeof setTimeout === "undefined") {
-  this.setTimeout = function (fn, delay) { fn(); return 0; };
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>San Cristóbal · Un Delirio Turístico</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f6f4ee; --card:#ffffff; --text:#1a2e22; --muted:#6b7d70; --line:#e4e2d8;
+  --green:#0b3d22; --green-light:#145c34; --green-text:#173f27;
+  --terracotta:#b5481a; --terracotta-light:#d05f28;
+  --mustard:#e8a93f; --mustard-light:#f0bc63;
+  --soft-green:#eef6f0; --soft-terracotta:#fdf0e8; --soft-mustard:#fdf5e6; --soft-red:#fef2f2;
+  --shadow-sm:0 1px 3px rgba(11,61,34,0.08); --shadow:0 4px 16px rgba(11,61,34,0.10); --shadow-lg:0 10px 36px rgba(11,61,34,0.18);
+  --radius:14px; --radius-sm:8px;
 }
-if (typeof clearTimeout === "undefined") {
-  this.clearTimeout = function () {};
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ===== LOGIN ===== */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:linear-gradient(160deg,var(--green) 0%,#0e4a29 55%,var(--terracotta) 180%);}
+.login-card{background:var(--card);border-radius:18px;box-shadow:var(--shadow-lg);
+  padding:0;width:420px;max-width:100%;overflow:hidden;}
+.login-banner{width:100%;display:block;}
+.login-body{padding:32px 36px 36px;}
+.login-title{font-size:19px;font-weight:700;text-align:center;margin-bottom:4px;color:var(--green-text);}
+.login-sub{font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:26px;
+  text-transform:uppercase;letter-spacing:0.6px;font-weight:600;}
+.login-field{margin-bottom:14px;}
+.login-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;}
+input,select,textarea{width:100%;border:1px solid #d8d5c9;border-radius:var(--radius-sm);padding:10px 13px;
+  font-size:13.5px;font-family:inherit;color:var(--text);background:#fff;outline:none;
+  transition:border-color .2s,box-shadow .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--terracotta);box-shadow:0 0 0 3px rgba(181,72,26,0.12);}
+textarea{min-height:80px;resize:vertical;line-height:1.5;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;
+  border-radius:var(--radius-sm);font-size:13.5px;font-weight:700;font-family:inherit;border:none;
+  cursor:pointer;transition:all .18s ease;white-space:nowrap;}
+.btn-primary{background:var(--terracotta);color:#fff;width:100%;margin-top:4px;}
+.btn-primary:hover{background:var(--terracotta-light);}
+.msg{font-size:12px;font-weight:600;color:var(--terracotta);text-align:center;margin-top:10px;min-height:16px;}
+.spinner{display:none;text-align:center;font-size:12px;color:var(--muted);margin-top:8px;}
+
+/* ===== HERO BANNER (post-login) ===== */
+.hero{width:100%;background:#fff;line-height:0;text-align:center;padding:8px 0;
+  border-bottom:3px solid var(--terracotta);}
+.hero img{height:92px;width:auto;max-width:90%;object-fit:contain;display:inline-block;}
+@media(max-width:720px){ .hero img{height:64px;} }
+
+/* ===== TOPBAR ===== */
+.topbar{background:var(--green);color:#fff;padding:0 28px;height:54px;display:flex;
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(11,61,34,0.30);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-title{font-size:13.5px;font-weight:700;}
+.topbar-sub{font-size:11.5px;opacity:0.75;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-badge{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  padding:5px 13px;border-radius:999px;font-size:11.5px;font-weight:600;}
+.btn-logout{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.3);
+  padding:6px 13px;border-radius:999px;font-size:11.5px;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:background .15s;}
+.btn-logout:hover{background:rgba(255,255,255,0.22);}
+.btn-download{background:var(--terracotta);color:#fff;border:1px solid var(--terracotta-light);
+  padding:6px 14px;border-radius:999px;font-size:11.5px;font-weight:700;font-family:inherit;
+  cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-download:hover{background:var(--terracotta-light);}
+.dl-wrap{position:relative;}
+.dl-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;
+  border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow);
+  min-width:260px;overflow:hidden;z-index:200;}
+.dl-menu.open{display:block;}
+.dl-menu a{display:block;padding:11px 16px;font-size:12.5px;font-weight:600;color:var(--text);
+  text-decoration:none;border-bottom:1px solid #f1efe8;transition:background .15s;}
+.dl-menu a:last-child{border-bottom:none;}
+.dl-menu a:hover{background:var(--soft-terracotta);color:var(--terracotta);}
+.dl-menu a span{display:block;font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px;}
+
+/* ===== TABS ===== */
+.tabs-wrap{background:var(--card);border-bottom:2px solid var(--line);padding:0 20px;
+  display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tabs-wrap::-webkit-scrollbar{display:none;}
+.tab-btn{padding:14px 18px;font-size:12.5px;font-weight:700;font-family:inherit;background:none;
+  border:none;border-bottom:3px solid transparent;color:var(--muted);cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.tab-btn:hover{color:var(--terracotta);}
+.tab-btn.active{color:var(--terracotta);border-bottom-color:var(--terracotta);}
+.tab-count{background:var(--soft-terracotta);color:var(--terracotta);font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:999px;}
+.tab-btn.active .tab-count{background:var(--terracotta);color:#fff;}
+
+/* ===== APP ===== */
+.app{max-width:1400px;margin:0 auto;padding:22px 20px 50px;}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:240px;max-width:420px;}
+.search-wrap input{border-radius:999px;padding:10px 16px 10px 38px;box-shadow:var(--shadow-sm);}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none;}
+.result-count{font-size:12px;color:var(--muted);font-weight:600;}
+
+/* ===== TABLE ===== */
+.table-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);overflow:hidden;}
+.table-scroll{overflow-x:auto;max-width:100%;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{background:var(--soft-green);color:var(--green-text);font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.4px;padding:11px 14px;border-bottom:2px solid var(--line);
+  text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2;}
+td{padding:10px 14px;border-bottom:1px solid #f1efe8;vertical-align:top;white-space:nowrap;
+  max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+tbody tr:hover td{background:#fbfaf6;}
+th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-index:1;
+  border-right:1px solid var(--line);font-weight:600;}
+th:first-child{background:var(--soft-green);z-index:3;}
+tbody tr:hover td:first-child{background:#fbfaf6;}
+td a{color:var(--terracotta);text-decoration:none;font-weight:600;}
+td a:hover{text-decoration:underline;}
+.cell-empty{color:#c3c0b4;}
+
+/* ===== ACORDEÓN (Delirio Turístico) ===== */
+.acc-list{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);overflow:hidden;}
+.acc-row{border-bottom:1px solid #f1efe8;}
+.acc-row:last-child{border-bottom:none;}
+.acc-header{display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;
+  transition:background .15s;user-select:none;}
+.acc-header:hover{background:#fbfaf6;}
+.acc-header.open{background:var(--soft-terracotta);}
+.acc-num{font-family:'DM Mono',monospace;font-size:11.5px;font-weight:600;color:var(--terracotta);
+  background:var(--soft-terracotta);padding:3px 9px;border-radius:6px;flex-shrink:0;}
+.acc-name{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.acc-chevron{font-size:11px;color:var(--muted);transition:transform .25s;flex-shrink:0;}
+.acc-header.open .acc-chevron{transform:rotate(180deg);}
+.acc-detail{display:none;border-top:1px solid var(--line);background:#fbfaf6;padding:16px 20px;}
+.acc-detail.open{display:block;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;}
+.detail-item{display:flex;flex-direction:column;gap:2px;}
+.detail-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;}
+.detail-value{font-size:13px;color:var(--text);word-break:break-word;}
+.detail-value a{color:var(--terracotta);text-decoration:none;font-weight:600;}
+.detail-value a:hover{text-decoration:underline;}
+@media(max-width:640px){ .detail-grid{grid-template-columns:1fr;} }
+
+/* ===== SECCIONES DE DETALLE (Creadores de Contenido) ===== */
+.detail-section{margin-bottom:18px;}
+.detail-section:last-child{margin-bottom:0;}
+.detail-section-title{font-size:12.5px;font-weight:700;color:var(--green-text);
+  border-left:3px solid var(--terracotta);padding-left:10px;margin-bottom:10px;}
+
+/* ===== APROBACIÓN Y COMENTARIOS ===== */
+.approval-box{margin-top:16px;padding:16px 18px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:#fff;}
+.approval-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.4px;margin-bottom:10px;}
+.approval-current{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.approval-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;
+  font-size:11px;font-weight:700;}
+.approval-pill.aprobado{background:var(--soft-green);color:#166534;}
+.approval-pill.rechazado{background:var(--soft-red);color:#991b1b;}
+.approval-pill.pendiente{background:var(--soft-mustard);color:#9a6b0e;}
+.approval-history-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;
+  max-height:230px;overflow-y:auto;padding-right:4px;}
+.approval-comment{background:#fbfaf6;border:1px solid var(--line);border-left:3px solid var(--terracotta);
+  border-radius:8px;padding:9px 12px;}
+.approval-comment-date{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:700;
+  color:var(--terracotta);margin-bottom:3px;}
+.approval-comment-text{font-size:12.5px;color:var(--text);line-height:1.5;}
+.approval-history-empty{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;}
+.approval-form{display:flex;flex-direction:column;gap:10px;}
+.approval-msg{font-size:12px;font-weight:600;min-height:16px;}
+.approval-msg.err{color:#991b1b;}
+.approval-msg.ok{color:#166534;}
+
+/* ===== STATS BAR ===== */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card.total::before{background:var(--green);}
+.stat-card.pendiente::before{background:var(--mustard);}
+.stat-card.aprobado::before{background:#059669;}
+.stat-card.rechazado::before{background:var(--terracotta);}
+.stat-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.4px;margin-bottom:6px;}
+.stat-value{font-size:26px;font-weight:700;color:var(--text);}
+.stat-card.pendiente .stat-value{color:#9a6b0e;}
+.stat-card.aprobado .stat-value{color:#059669;}
+.stat-card.rechazado .stat-value{color:var(--terracotta);}
+@media(max-width:640px){ .stats-bar{grid-template-columns:repeat(2,1fr);} }
+
+/* ===== STATES ===== */
+.loading{text-align:center;padding:60px 20px;color:var(--muted);}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--line);border-top-color:var(--terracotta);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px;}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+.alert-error{background:var(--soft-red);border:1px solid #fecaca;color:#991b1b;
+  border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;font-weight:600;margin:16px 0;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ===== FICHA DE CARACTERIZACIÓN — checkboxes, archivos y grilla responsive ===== */
+input[type="checkbox"], input[type="radio"]{
+  width:auto;height:16px;padding:0;border:none;background:none;box-shadow:none;
+  accent-color:var(--terracotta);margin:0;flex-shrink:0;cursor:pointer;
 }
-// ============================================
-
-/************************************************************
- * SAN CRISTÓBAL — UN DELIRIO TURÍSTICO DE OPORTUNIDADES
- *
- * ✅ Consecutivo automático: SCT-001, SCT-002...
- * ✅ PDF BASE desde plantilla Google Docs
- * ✅ Crea carpeta por solicitud
- * ✅ Mueve anexos a carpeta final
- * ✅ Convierte imágenes / Google Docs / Google Sheets / Google Slides a PDF
- * ✅ Une PDF base + anexos con pdf-lib
- * ✅ Escribe Carpeta Final y PDF Final en la hoja
- * ✅ Envía correo institucional
- * ✅ Panel HTML de aprobación / rechazo con comentarios
- * ✅ Correos inválidos se omiten y no rompen el flujo
- ************************************************************/
-
-/***********************
- * CONFIG
- ***********************/
-const ID_PLANTILLA_DOC = "1BhebC-SxVUWYhDMyq4SDrf9_sND8c3FLrqgPA9msf24";
-const NOMBRE_HOJA = "Respuestas de formulario 1";
-
-const CONSECUTIVO_PREFIX = "RCT-";
-const COL_CONSECUTIVO = 1;
-
-const ID_CARPETA_DESTINO = "1ZrNoMENsKMnSSfdGuRxPrKhskmN-ysrF";
-
-/***********************
- * DESTINATARIOS FIJOS
- ***********************/
-const DESTINATARIOS_FIJOS = [
-  "scdelirioturistico@gmail.com"
-];
-
-/***********************
- * DEBUG
- ***********************/
-const DEBUG = {
-  enabled: true,
-  notifyEmail: "josemanuel.morenoescobar@gmail.com"
-};
-
-/***********************
- * BRANDING
- ***********************/
-const BRANDING = {
-  logo: "https://lh3.googleusercontent.com/d/12OmYXr4XcY_MHdG5a40lwEyk1VJPf-as",
-  gramilla: "",
-  colorPrincipal: "#173f27",
-  anchoCorreo: "700px"
-};
-
-/************************************************************
- * ENTRYPOINT TRIGGER
- ************************************************************/
-function SCT_onFormSubmit(e) {
-  try {
-    procesarSolicitudSCT(e);
-  } catch (err) {
-    logError_("SCT_onFormSubmit", err);
-    throw err;
-  }
+input[type="file"]{
+  padding:8px 10px;font-size:12px;background:#fbfaf6;cursor:pointer;
 }
-
-/***********************
- * LOG ERROR
- ***********************/
-function logError_(where, err) {
-  const msg = `[${where}] ${String(err && err.stack ? err.stack : err)}`;
-  Logger.log(msg);
-
-  try {
-    if (DEBUG.enabled && DEBUG.notifyEmail) {
-      GmailApp.sendEmail(DEBUG.notifyEmail, "ERROR Sistema SCT", msg);
-    }
-  } catch (e2) {
-    Logger.log("No pude notificar error por correo: " + e2);
-  }
-}
-
-/***********************
- * HOJA
- ***********************/
-function obtenerHojaRespuestas_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss) throw new Error("No hay Spreadsheet activo.");
-
-  let hoja = ss.getSheetByName(NOMBRE_HOJA);
-  if (!hoja) hoja = ss.getActiveSheet();
-
-  if (!hoja) throw new Error("No pude encontrar la hoja de respuestas.");
-  return hoja;
-}
-
-/***********************
- * HELPERS TEXTO
- ***********************/
-function limpiarParaArchivo_(texto) {
-  return String(texto || "")
-    .replace(/[\\/:*?"<>|]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function normalizarTexto_(s) {
-  return String(s || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ");
-}
-
-function esEmailValido_(email) {
-  const e = String(email || "").trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-}
-
-function getVal_(respuestas, titulo) {
-  if (!respuestas) return "";
-
-  if (respuestas[titulo]) {
-    return respuestas[titulo][0] || "";
-  }
-
-  const target = normalizarTexto_(titulo);
-  const key = Object.keys(respuestas).find(k => normalizarTexto_(k) === target);
-
-  return key ? respuestas[key][0] || "" : "";
-}
-
-function buscarColumnaPorEncabezado_(hoja, nombreHeader) {
-  const lastCol = hoja.getLastColumn();
-  const headers = hoja.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
-
-  const target = normalizarTexto_(nombreHeader);
-
-  for (let i = 0; i < headers.length; i++) {
-    if (normalizarTexto_(headers[i]) === target) {
-      return i + 1;
-    }
-  }
-
-  return -1;
-}
-
-function escribirLinksSalidaEnHoja_(hoja, fila, carpetaUrl, pdfUrl) {
-  const colCarpeta = buscarColumnaPorEncabezado_(hoja, "Carpeta Final");
-  const colPdf = buscarColumnaPorEncabezado_(hoja, "PDF Final");
-
-  if (colCarpeta === -1) {
-    throw new Error('No encontré la columna "Carpeta Final".');
-  }
-
-  if (colPdf === -1) {
-    throw new Error('No encontré la columna "PDF Final".');
-  }
-
-  hoja.getRange(fila, colCarpeta).setValue(carpetaUrl || "");
-  hoja.getRange(fila, colPdf).setValue(pdfUrl || "");
-}
-
-/***********************
- * VALIDAR IDS
- ***********************/
-function validarIdArchivo_(id, nombreCampo) {
-  const s = String(id || "").trim();
-
-  if (!s) throw new Error(`Falta configurar ${nombreCampo}.`);
-  if (s.includes("http")) throw new Error(`${nombreCampo} debe ser solo ID, no link.`);
-  if (s.length < 20) throw new Error(`${nombreCampo} parece inválido.`);
-
-  return s;
-}
-
-/***********************
- * RETRY DRIVE
- ***********************/
-function retryDrive_(fn, intentos, esperaMs) {
-  let ultimoError = null;
-
-  intentos = intentos || 4;
-  esperaMs = esperaMs || 1500;
-
-  for (let i = 0; i < intentos; i++) {
-    try {
-      return fn();
-    } catch (e) {
-      ultimoError = e;
-      if (i < intentos - 1) Utilities.sleep(esperaMs);
-    }
-  }
-
-  throw ultimoError;
-}
-
-/***********************
- * CARPETAS
- ***********************/
-function obtenerCarpetaDestino_() {
-  const id = String(ID_CARPETA_DESTINO || "").trim();
-
-  if (!id) return DriveApp.getRootFolder();
-  if (id.includes("http")) throw new Error("ID_CARPETA_DESTINO debe ser solo ID, no link.");
-
-  try {
-    const folder = DriveApp.getFolderById(id);
-    folder.getName();
-    return folder;
-  } catch (e) {
-    throw new Error("No pude acceder a la carpeta destino. Detalle: " + e);
-  }
-}
-
-function obtenerONCrearSubcarpetaRegistro_(carpetaRaiz, consecutivo, nombres, apellidos, documento) {
-  const nombreCarpeta = limpiarParaArchivo_(
-    `${consecutivo} ${nombres || ""} ${apellidos || ""} ${documento || ""}`
-  ) || consecutivo;
-
-  const it = carpetaRaiz.getFoldersByName(nombreCarpeta);
-  if (it.hasNext()) return it.next();
-
-  return carpetaRaiz.createFolder(nombreCarpeta);
+.carac-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;}
+.carac-grid .detail-item-full{grid-column:1 / -1;}
+.carac-check-list{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:6px;background:#fff;max-height:220px;overflow-y:auto;}
+.carac-check-item{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:400;
+  text-transform:none;letter-spacing:0;padding:7px 8px;border-radius:6px;cursor:pointer;transition:background .12s;}
+.carac-check-item:hover{background:#f1efe8;}
+@media(max-width:720px){
+  .carac-grid{grid-template-columns:1fr;gap:12px;}
+  .carac-check-item{padding:9px 8px;font-size:13px;}
+  .carac-check-list{max-height:none;}
+  .approval-box .btn-primary{width:100%;}
+  .approval-box .btn{width:100%;margin-top:8px;margin-left:0 !important;display:block;}
+  .detail-label{font-size:10.5px;}
 }
 
-function obtenerParentsCsv_(fileId) {
-  const meta = retryDrive_(function () {
-    return Drive.Files.get(fileId, {
-      supportsAllDrives: true,
-      fields: "parents"
-    });
-  });
 
-  const parents = (meta.parents || [])
-    .map(p => p.id)
-    .filter(Boolean);
-
-  return parents.join(",");
+@media(max-width:720px){
+  .topbar{padding:0 16px;}
+  .topbar-sub{display:none;}
+  .tabs-wrap{padding:0 12px;}
+  .app{padding:16px 12px 40px;}
+  .login-body{padding:26px 22px 30px;}
+  .login-card{width:100%;}
 }
-
-function moverArchivoACarpeta_(fileId, carpetaDestino) {
-  const parentsCsv = obtenerParentsCsv_(fileId);
-
-  return retryDrive_(function () {
-    return Drive.Files.update(
-      {},
-      fileId,
-      null,
-      {
-        addParents: carpetaDestino.getId(),
-        removeParents: parentsCsv,
-        supportsAllDrives: true
-      }
-    );
-  });
-}
-
-/***********************
- * ARCHIVOS / ANEXOS
- ***********************/
-function extraerFileIdDeUrl_(url) {
-  const u = String(url || "");
-
-  const m1 = u.match(/\/d\/([-\w]{25,})/);
-  if (m1) return m1[1];
-
-  const m2 = u.match(/[?&]id=([-\w]{25,})/);
-  if (m2) return m2[1];
-
-  const m3 = u.match(/([-\w]{25,})/);
-  return m3 ? m3[1] : null;
-}
-
-function obtenerExtension_(nombre) {
-  const parts = String(nombre || "").split(".");
-  if (parts.length < 2) return "";
-
-  const ext = parts.pop().toLowerCase().trim();
-  if (!ext || ext.length > 8) return "";
-
-  return ext;
-}
-
-function nombreUnicoEnCarpeta_(carpeta, nombre) {
-  if (!carpeta.getFilesByName(nombre).hasNext()) return nombre;
-
-  const punto = nombre.lastIndexOf(".");
-  const base = punto > 0 ? nombre.slice(0, punto) : nombre;
-  const ext = punto > 0 ? nombre.slice(punto) : "";
-
-  let n = 2;
-  while (carpeta.getFilesByName(`${base} (${n})${ext}`).hasNext()) {
-    n++;
-  }
-
-  return `${base} (${n})${ext}`;
-}
-
-function esPDFBlob_(blob) {
-  try {
-    const bytes = blob.getBytes();
-    if (!bytes || bytes.length < 4) return false;
-
-    const header = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
-    return header === "%PDF";
-  } catch (e) {
-    return false;
-  }
-}
-
-function _pt_(inches) {
-  return inches * 72;
-}
-
-function _fitImageToPage_(img, opts) {
-  const pageW = 595;
-  const pageH = 842;
-
-  const marginL = _pt_(0.75);
-  const marginR = _pt_(0.75);
-  const marginT = _pt_(0.75);
-  const marginB = _pt_(0.75);
-
-  const headerSpace = opts && opts.headerSpacePt ? opts.headerSpacePt : _pt_(1.2);
-
-  const maxW = pageW - marginL - marginR;
-  const maxH = pageH - marginT - marginB - headerSpace;
-
-  const w = img.getWidth();
-  const h = img.getHeight();
-
-  if (!w || !h) return;
-
-  const scale = Math.min(maxW / w, maxH / h, 1);
-
-  img.setWidth(Math.floor(w * scale));
-  img.setHeight(Math.floor(h * scale));
-}
-
-function convertirArchivoAPDFBlob_(file, outputPdfName, headerTitle) {
-  const mime = file.getMimeType();
-
-  const isGoogle =
-    mime === MimeType.GOOGLE_DOCS ||
-    mime === MimeType.GOOGLE_SHEETS ||
-    mime === MimeType.GOOGLE_SLIDES ||
-    mime === "application/vnd.google-apps.document" ||
-    mime === "application/vnd.google-apps.spreadsheet" ||
-    mime === "application/vnd.google-apps.presentation";
-
-  if (isGoogle) {
-    return file.getAs(MimeType.PDF).setName(outputPdfName || "convertido.pdf");
-  }
-
-  const isImage = mime && String(mime).startsWith("image/");
-
-  if (isImage) {
-    const tempDoc = DocumentApp.create("TEMP_CONVERSION_" + new Date().getTime());
-    const body = tempDoc.getBody();
-
-    const titulo = headerTitle || "SOPORTE";
-    const fecha = Utilities.formatDate(
-      new Date(),
-      Session.getScriptTimeZone(),
-      "dd/MM/yyyy HH:mm"
-    );
-
-    const p1 = body.appendParagraph(titulo);
-    p1.setBold(true).setFontSize(12);
-    p1.setSpacingAfter(4);
-
-    const p2 = body.appendParagraph("Fecha: " + fecha);
-    p2.setFontSize(10);
-    p2.setSpacingAfter(10);
-
-    const pImg = body.appendParagraph("");
-    pImg.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-
-    const img = pImg.appendInlineImage(file.getBlob());
-    _fitImageToPage_(img, { headerSpacePt: _pt_(1.6) });
-
-    tempDoc.saveAndClose();
-
-    const pdfBlob = DriveApp.getFileById(tempDoc.getId())
-      .getAs(MimeType.PDF)
-      .setName(outputPdfName || "imagen_convertida.pdf");
-
-    DriveApp.getFileById(tempDoc.getId()).setTrashed(true);
-
-    return pdfBlob;
-  }
-
-  throw new Error(
-    `El archivo "${file.getName()}" no es PDF ni imagen convertible. MIME: ${mime}`
-  );
-}
-
-function obtenerAdjuntosDesdeCampo_(urlTexto, consecutivo, etiquetaAdjunto, carpetaDestinoFinal) {
-  const adjuntos = [];
-  if (!urlTexto) return adjuntos;
-
-  const urls = String(urlTexto)
-    .split(/[,]+/)
-    .map(u => u.trim())
-    .filter(Boolean);
-
-  urls.forEach(function (url, i) {
-    try {
-      const fileId = extraerFileIdDeUrl_(url);
-      if (!fileId) return;
-
-      const file = retryDrive_(function () {
-        return DriveApp.getFileById(fileId);
-      });
-
-      const extOriginal = obtenerExtension_(file.getName()) || "pdf";
-      const etiqueta = limpiarParaArchivo_(etiquetaAdjunto || "Adjunto");
-
-      const nombreBase = urls.length > 1
-        ? `${consecutivo} ${etiqueta} (${i + 1}).${extOriginal}`
-        : `${consecutivo} ${etiqueta}.${extOriginal}`;
-
-      const nombreFinal = nombreUnicoEnCarpeta_(carpetaDestinoFinal, nombreBase);
-
-      retryDrive_(function () {
-        file.setName(nombreFinal);
-        return true;
-      });
-
-      moverArchivoACarpeta_(fileId, carpetaDestinoFinal);
-
-      const originalBlob = retryDrive_(function () {
-        return file.getBlob().setName(nombreFinal);
-      });
-
-      let blobParaMerge = originalBlob;
-      let nombreMerge = nombreFinal;
-
-      if (!esPDFBlob_(originalBlob)) {
-        const nombrePdf = nombreFinal.replace(/\.[^.]+$/, "") + ".pdf";
-        const headerTitle = `SOPORTE – ${String(etiquetaAdjunto || "Adjunto").toUpperCase()} | ${consecutivo}`;
-
-        blobParaMerge = convertirArchivoAPDFBlob_(file, nombrePdf, headerTitle);
-        nombreMerge = nombrePdf;
-      }
-
-      adjuntos.push({
-        id: fileId,
-        name: nombreFinal,
-        url: file.getUrl(),
-        blob: blobParaMerge.setName(nombreMerge)
-      });
-
-    } catch (err) {
-      Logger.log("Error procesando anexo: " + url + " -> " + err);
-    }
-  });
-
-  return adjuntos;
-}
-
-/***********************
- * PDF-LIB
- ***********************/
-function getPDFLib_() {
-  if (typeof PDFLib === "undefined") {
-    throw new Error("pdf-lib no está cargada. Debes agregar la librería pdf-lib al proyecto.");
-  }
-
-  return PDFLib;
-}
-
-async function mergePdfsWithPdfLibAsync_(pdfBlobs, outputName) {
-  const { PDFDocument } = getPDFLib_();
-
-  if (!pdfBlobs || !pdfBlobs.length) {
-    throw new Error("No hay PDFs para combinar.");
-  }
-
-  const merged = await PDFDocument.create();
-  const omitidos = [];
-
-  for (let i = 0; i < pdfBlobs.length; i++) {
-    const blob = pdfBlobs[i];
-
-    const nombreBlob = blob && typeof blob.getName === "function"
-      ? blob.getName()
-      : `PDF_${i + 1}`;
-
-    try {
-      if (!blob || typeof blob.getBytes !== "function") {
-        throw new Error("Blob inválido.");
-      }
-
-      const bytesArr = blob.getBytes();
-
-      if (!bytesArr || !bytesArr.length) {
-        throw new Error("PDF vacío.");
-      }
-
-      const uint8 = Uint8Array.from(bytesArr, b => (b + 256) % 256);
-
-      let srcDoc;
-
-      try {
-        srcDoc = await PDFDocument.load(uint8);
-      } catch (e1) {
-        srcDoc = await PDFDocument.load(uint8, { ignoreEncryption: true });
-      }
-
-      const pages = await merged.copyPages(srcDoc, srcDoc.getPageIndices());
-      pages.forEach(p => merged.addPage(p));
-
-    } catch (e) {
-      omitidos.push(`${nombreBlob} -> ${e}`);
-      Logger.log(`PDF omitido del merge: ${nombreBlob} | ${e}`);
-    }
-  }
-
-  if (merged.getPageCount() === 0) {
-    throw new Error("No se pudo generar el PDF combinado.");
-  }
-
-  const mergedBytes = await merged.save();
-
-  if (omitidos.length) {
-    Logger.log("Se omitieron PDFs del merge:\n- " + omitidos.join("\n- "));
-  }
-
-  return Utilities.newBlob(
-    mergedBytes,
-    MimeType.PDF,
-    outputName || "PDF Consolidado.pdf"
-  );
-}
-
-/***********************
- * EMAIL HTML
- ***********************/
-function enviarEmailInstitucional_(params) {
-  const {
-    destinatarios,
-    asunto,
-    tituloCuerpo,
-    mensajeIntroHTML,
-    camposTabla,
-    bloqueExtraHTML,
-    adjuntosBlobs,
-    replyTo,
-    nombreFrom
-  } = params;
-
-  let tabla = `
-    <table style="width:100%; border-collapse:collapse; margin-top:15px; font-size:14px; border:1px solid #e0e0e0;">
-  `;
-
-  let contador = 0;
-
-  (camposTabla || []).forEach(item => {
-    const valor = item.value;
-
-    if (valor === undefined || valor === null) return;
-    if (String(valor).trim() === "" || String(valor).trim().toLowerCase() === "n/a") return;
-
-    const bg = contador % 2 === 0 ? "#f9f9f9" : "#ffffff";
-
-    tabla += `
-      <tr style="background-color:${bg};">
-        <td style="padding:12px; border-bottom:1px solid #eee; font-weight:bold; width:42%; color:#555;">
-          ${item.label}
-        </td>
-        <td style="padding:12px; border-bottom:1px solid #eee; color:#333;">
-          ${String(valor)}
-        </td>
-      </tr>
-    `;
-
-    contador++;
-  });
-
-  tabla += `</table>`;
-
-  const cuerpoHTML = `
-    <div style="font-family:'Segoe UI',Arial,sans-serif; color:#333; max-width:${BRANDING.anchoCorreo}; margin:auto; border:1px solid #eee; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-      
-      <div style="background:#fff; text-align:center; border-bottom:4px solid ${BRANDING.colorPrincipal};">
-        <img src="${BRANDING.logo}" alt="Encabezado" style="width:100%; max-width:${BRANDING.anchoCorreo}; height:auto; display:block; margin:0 auto; border:0;">
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <img class="login-banner" src="https://lh3.googleusercontent.com/d/12OmYXr4XcY_MHdG5a40lwEyk1VJPf-as" alt="San Cristóbal - Un Delirio Turístico"
+         onerror="this.style.display='none';">
+    <div class="login-body">
+      <div class="login-title">Panel de Gestión</div>
+      <div class="login-sub">San Cristóbal · Un Delirio Turístico</div>
+
+      <div class="login-field">
+        <label>Usuario</label>
+        <input type="text" id="loginUsuario" placeholder="Tu usuario"
+               onkeydown="if(event.key==='Enter') document.getElementById('loginClave').focus()">
+      </div>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="loginClave" placeholder="Tu contraseña"
+               onkeydown="if(event.key==='Enter') ejecutarLogin()">
       </div>
 
-      <div style="padding:35px; background:#fff;">
-        <h2 style="color:${BRANDING.colorPrincipal}; font-size:21px; margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">
-          ${tituloCuerpo}
-        </h2>
+      <button class="btn btn-primary" onclick="ejecutarLogin()">Ingresar →</button>
+      <div id="msgLogin" class="msg"></div>
+      <div class="spinner" id="spinLogin">⏳ Validando...</div>
+    </div>
+  </div>
+</div>
 
-        <p style="font-size:16px; line-height:1.6; color:#444;">
-          ${mensajeIntroHTML}
-        </p>
+<!-- ============ APP (oculta hasta login) ============ -->
+<div id="appRoot" style="display:none;">
 
-        <div style="margin-top:25px;">
-          <p style="font-weight:bold; color:#000; margin-bottom:10px; border-left:4px solid ${BRANDING.colorPrincipal}; padding-left:10px;">
-            Información del registro
-          </p>
-          ${tabla}
-        </div>
-
-        ${bloqueExtraHTML ? `<div style="margin-top:25px;">${bloqueExtraHTML}</div>` : ""}
-
-        <p style="font-size:14px; color:#777; margin-top:30px; line-height:1.5; border-top:1px solid #eee; padding-top:20px;">
-          Este mensaje fue generado automáticamente por el sistema de inscripción.
-        </p>
-      </div>
-
-      <div style="text-align:center; background:#fcfcfc; padding:15px; font-size:11px; color:#aaa;">
-        San Cristóbal — Un Delirio Turístico de Oportunidades
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title">Panel de Gestión</div>
+        <div class="topbar-sub">San Cristóbal · Un Delirio Turístico</div>
       </div>
     </div>
-  `;
-
-  const to = Array.isArray(destinatarios)
-    ? destinatarios.join(",")
-    : String(destinatarios);
-
-  GmailApp.sendEmail(to, asunto, "", {
-    htmlBody: cuerpoHTML,
-    attachments: adjuntosBlobs || [],
-    name: nombreFrom || "San Cristóbal",
-    replyTo: replyTo || ""
-  });
-}
-
-/***********************
- * FECHAS
- ***********************/
-function formatearFecha_(fecha) {
-  if (!fecha) return "";
-
-  try {
-    let f = fecha instanceof Date ? fecha : new Date(fecha);
-
-    if (isNaN(f)) {
-      const partes = String(fecha).split(/[\/\-]/);
-      if (partes.length >= 3) {
-        f = new Date(Number(partes[2]), Number(partes[1]) - 1, Number(partes[0]));
-      }
-    }
-
-    if (isNaN(f)) return String(fecha);
-
-    return Utilities.formatDate(
-      f,
-      Session.getScriptTimeZone(),
-      "dd/MM/yy"
-    );
-  } catch (e) {
-    return String(fecha);
-  }
-}
-
-function calcularEdadGS_(fecha) {
-  if (!fecha) return "";
-
-  try {
-    let f = fecha instanceof Date ? fecha : new Date(fecha);
-
-    if (isNaN(f)) {
-      const partes = String(fecha).split(/[\/\-]/);
-      if (partes.length >= 3) {
-        f = new Date(Number(partes[2]), Number(partes[1]) - 1, Number(partes[0]));
-      }
-    }
-
-    if (isNaN(f)) return "";
-
-    const hoy = new Date();
-    let edad = hoy.getFullYear() - f.getFullYear();
-
-    const m = hoy.getMonth() - f.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < f.getDate())) {
-      edad--;
-    }
-
-    return edad;
-  } catch (e) {
-    return "";
-  }
-}
-
-/***********************
- * FUNCIÓN PRINCIPAL
- ***********************/
-function procesarSolicitudSCT(evento) {
-  return procesarSolicitudSCTAsync_(evento);
-}
-
-async function procesarSolicitudSCTAsync_(evento) {
-  const lock = LockService.getScriptLock();
-  lock.waitLock(300000);
-
-  let copia = null;
-
-  try {
-    const respuestas = evento && evento.namedValues ? evento.namedValues : {};
-    const hoja = obtenerHojaRespuestas_();
-
-    const fila = evento && evento.range && evento.range.getRow
-      ? evento.range.getRow()
-      : hoja.getLastRow();
-
-    let consecutivo = getVal_(respuestas, "Consecutivo");
-
-    if (!consecutivo || !String(consecutivo).startsWith(CONSECUTIVO_PREFIX)) {
-      const existentes = fila > 1
-        ? hoja.getRange(2, COL_CONSECUTIVO, fila - 1).getValues().flat()
-        : [];
-
-      let max = 0;
-
-      existentes.forEach(val => {
-        const s = String(val || "").trim();
-        if (s.startsWith(CONSECUTIVO_PREFIX)) {
-          const num = parseInt(s.replace(CONSECUTIVO_PREFIX, ""), 10);
-          if (!isNaN(num) && num > max) max = num;
-        }
-      });
-
-      consecutivo = CONSECUTIVO_PREFIX + String(max + 1).padStart(3, "0");
-      hoja.getRange(fila, COL_CONSECUTIVO).setValue(consecutivo);
-      SpreadsheetApp.flush();
-    }
-
-    const marcaTemporal = getVal_(respuestas, "Marca temporal");
-    const correoGoogle = getVal_(respuestas, "Dirección de correo electrónico");
-
-    const nombres = getVal_(respuestas, "Nombres");
-    const apellidos = getVal_(respuestas, "Apellidos");
-    const fechaNacimiento = getVal_(respuestas, "Fecha de nacimiento");
-    const tipoDoc = getVal_(respuestas, "Tipo de documento");
-    const numDoc = getVal_(respuestas, "Numero de documento");
-    const genero = getVal_(respuestas, "Género");
-    const orientacionSexual = getVal_(respuestas, "Orientación sexual");
-    const poblacionMigrante = getVal_(respuestas, "¿Pertenece a una población migrante internacional?");
-    const cualPoblacionMigrante = getVal_(respuestas, "¿Cuál población migrante internacional?");    
-
-    const victima = getVal_(respuestas, "¿Es víctima del conflicto?");
-    const discapacidad = getVal_(respuestas, "¿Tiene discapacidad?");
-    const etnica = getVal_(respuestas, "Grupo étnico");
-    const jovenAdulto = getVal_(respuestas, "¿Es joven / adulto mayor?");
-
-    const telefono = getVal_(respuestas, "Teléfono de contacto");
-    const correoContacto = getVal_(respuestas, "Correo electrónico de contacto");
-
-    const resideSanCristobal = getVal_(respuestas, "¿Reside en la localidad de San Cristóbal?");
-    const barrio = getVal_(respuestas, "Barrio de residencia");
-    const direccion = getVal_(respuestas, "Dirección de residencia");
-
-    const cadenaTurismo = getVal_(respuestas, "¿Pertenece a la cadena de valor del turismo?");
-    const tipoActividad = getVal_(respuestas, "Tipo de actividad");
-    const nombreEmprendimiento = getVal_(respuestas, "Nombre del emprendimiento");
-    const tiempoFuncionamiento = getVal_(respuestas, "Tiempo de funcionamiento");
-    const personasVinculadas = getVal_(respuestas, "Número de personas vinculadas");
-    const formacionTurismo = getVal_(respuestas, "¿Ha recibido formación en turismo?");
-    const necesitaFortalecer = getVal_(respuestas, "¿Qué necesita fortalecer?");
-    const proyectoIdea = getVal_(respuestas, "Describa su proyecto o idea");
-    const motivoParticipacion = getVal_(respuestas, "¿Por qué desea participar en el proyecto?");
-    const rnt = getVal_(respuestas, "¿Cuenta con Registro Nacional de Turismo?");
-
-    const redes = getVal_(respuestas, "Links de redes sociales (Facebook, Instagram, página web, etc.)")
-      || getVal_(respuestas, "Links de redes sociales");
-
-    const aceptaTerminos = getVal_(respuestas, "Acepto los términos");
-    const deseaVolverTerminos = getVal_(respuestas, "Desea volver a los términos");
-
-    const anexoDocumento = getVal_(respuestas, "Documento de identidad");
-    const anexoRecibo = getVal_(respuestas, "Recibo servicio público o certificado de residencia");
-    const anexoEvidencia = getVal_(respuestas, "Evidencia del emprendimiento o actividad turística");
-    const anexoRNT = getVal_(respuestas, "Registro Nacional de Turismo");
-
-    const nombreCompleto = limpiarParaArchivo_(`${nombres} ${apellidos}`) || "SOLICITANTE";
-    const docLimpio = limpiarParaArchivo_(numDoc) || "DOCUMENTO";
-
-    const nombrePDF = `${consecutivo} PDF Consolidado ${nombreCompleto} ${docLimpio}.pdf`;
-
-    const carpetaRaiz = obtenerCarpetaDestino_();
-    const carpetaRegistro = obtenerONCrearSubcarpetaRegistro_(
-      carpetaRaiz,
-      consecutivo,
-      nombres,
-      apellidos,
-      numDoc
-    );
-
-    const plantillaId = validarIdArchivo_(ID_PLANTILLA_DOC, "ID_PLANTILLA_DOC");
-
-    const plantillaFile = DriveApp.getFileById(plantillaId);
-    copia = plantillaFile.makeCopy(`TMP_${consecutivo}_BASE`, carpetaRegistro);
-
-    const doc = DocumentApp.openById(copia.getId());
-    const cuerpo = doc.getBody();
-
-    const fechaRegistro = new Date();
-
-    const marcaTemporalFmt = formatearFecha_(marcaTemporal);
-    const fechaRegistroFmt = formatearFecha_(fechaRegistro);
-
-    const fechaNacimientoFmt = formatearFecha_(fechaNacimiento);
-    const edadCalculada = calcularEdadGS_(fechaNacimiento);
-
-    const fechaNacimientoFinal = edadCalculada
-      ? `${fechaNacimientoFmt} (${edadCalculada} años)`
-      : fechaNacimientoFmt;
-
-    const redesFinal = String(redes)
-      .match(/https?:\/\/[^\s,]+/gi)
-      ?.join("\n") || String(redes);
-
-    cuerpo.replaceText("{{consecutivo}}", String(consecutivo));
-    cuerpo.replaceText("{{marca_temporal}}", String(marcaTemporalFmt));
-    cuerpo.replaceText("{{fecha_registro}}", String(fechaRegistroFmt));
-
-    cuerpo.replaceText("{{correo_google}}", String(correoGoogle));
-    cuerpo.replaceText("{{nombres}}", String(nombres));
-    cuerpo.replaceText("{{apellidos}}", String(apellidos));
-    cuerpo.replaceText("{{fecha_nacimiento}}", String(fechaNacimientoFinal));
-    cuerpo.replaceText("{{tipo_documento}}", String(tipoDoc));
-    cuerpo.replaceText("{{numero_documento}}", String(numDoc));
-    cuerpo.replaceText("{{genero}}", String(genero));
-    cuerpo.replaceText("{{orientacion_sexual}}", String(orientacionSexual));
-    cuerpo.replaceText("{{poblacion_migrante_internacional}}", String(poblacionMigrante));
-    cuerpo.replaceText("{{cual_poblacion_migrante_internacional}}", String(cualPoblacionMigrante));    
-
-    cuerpo.replaceText("{{victima_conflicto}}", String(victima));
-    cuerpo.replaceText("{{discapacidad}}", String(discapacidad));
-    cuerpo.replaceText("{{comunidad_etnica}}", String(etnica));
-    cuerpo.replaceText("{{joven_adulto_mayor}}", String(jovenAdulto));
-
-    cuerpo.replaceText("{{telefono_contacto}}", String(telefono));
-    cuerpo.replaceText("{{correo_contacto}}", String(correoContacto));
-
-    cuerpo.replaceText("{{reside_san_cristobal}}", String(resideSanCristobal));
-    cuerpo.replaceText("{{barrio_residencia}}", String(barrio));
-    cuerpo.replaceText("{{direccion_residencia}}", String(direccion));
-
-    cuerpo.replaceText("{{cadena_valor_turismo}}", String(cadenaTurismo));
-    cuerpo.replaceText("{{tipo_actividad}}", String(tipoActividad));
-    cuerpo.replaceText("{{nombre_emprendimiento}}", String(nombreEmprendimiento));
-    cuerpo.replaceText("{{tiempo_funcionamiento}}", String(tiempoFuncionamiento));
-    cuerpo.replaceText("{{personas_vinculadas}}", String(personasVinculadas));
-    cuerpo.replaceText("{{formacion_turismo}}", String(formacionTurismo));
-    cuerpo.replaceText("{{necesita_fortalecer}}", String(necesitaFortalecer));
-    cuerpo.replaceText("{{proyecto_idea}}", String(proyectoIdea));
-    cuerpo.replaceText("{{motivo_participacion}}", String(motivoParticipacion));
-    cuerpo.replaceText("{{cuenta_rnt}}", String(rnt));
-    cuerpo.replaceText("{{redes_sociales}}", redesFinal);
-    cuerpo.replaceText("{{acepta_terminos}}", String(aceptaTerminos));
-    cuerpo.replaceText("{{desea_volver_terminos}}", String(deseaVolverTerminos));
-
-    doc.saveAndClose();
-
-    const pdfBaseBlob = copia.getAs(MimeType.PDF).setName(`${consecutivo} Base.pdf`);
-
-    const anexosDocumento = obtenerAdjuntosDesdeCampo_(
-      anexoDocumento,
-      consecutivo,
-      "Documento de identidad",
-      carpetaRegistro
-    );
-
-    const anexosRecibo = obtenerAdjuntosDesdeCampo_(
-      anexoRecibo,
-      consecutivo,
-      "Recibo o certificado residencia",
-      carpetaRegistro
-    );
-
-    const anexosEvidencia = obtenerAdjuntosDesdeCampo_(
-      anexoEvidencia,
-      consecutivo,
-      "Evidencia emprendimiento",
-      carpetaRegistro
-    );
-
-    const anexosRNT = obtenerAdjuntosDesdeCampo_(
-      anexoRNT,
-      consecutivo,
-      "Registro Nacional de Turismo",
-      carpetaRegistro
-    );
-
-    const blobsMerge = []
-      .concat([pdfBaseBlob])
-      .concat(anexosDocumento.map(a => a.blob))
-      .concat(anexosRecibo.map(a => a.blob))
-      .concat(anexosEvidencia.map(a => a.blob))
-      .concat(anexosRNT.map(a => a.blob));
-
-    const blobFinal = await mergePdfsWithPdfLibAsync_(blobsMerge, nombrePDF);
-    const archivoPDF = carpetaRegistro.createFile(blobFinal).setName(nombrePDF);
-
-    escribirLinksSalidaEnHoja_(
-      hoja,
-      fila,
-      carpetaRegistro.getUrl(),
-      archivoPDF.getUrl()
-    );
-
-    const camposTabla = [
-      { label: "Consecutivo", value: consecutivo },
-      { label: "Fecha registro", value: fechaRegistroFmt },
-      { label: "Nombres", value: nombres },
-      { label: "Apellidos", value: apellidos },
-      { label: "Tipo documento", value: tipoDoc },
-      { label: "Número documento", value: numDoc },
-      { label: "Orientación sexual", value: orientacionSexual },
-      { label: "Población migrante internacional", value: poblacionMigrante },
-      { label: "Cuál población migrante internacional", value: cualPoblacionMigrante },
-      { label: "Teléfono", value: telefono },
-      { label: "Correo", value: correoContacto || correoGoogle },
-      { label: "Barrio", value: barrio },
-      { label: "Reside en San Cristóbal", value: resideSanCristobal },
-      { label: "Pertenece a la cadena de valor del turismo", value: cadenaTurismo },
-      { label: "Tipo de actividad", value: tipoActividad },
-      { label: "Nombre del emprendimiento", value: nombreEmprendimiento },
-      { label: "Cuenta con RNT", value: rnt },
-      { label: "Aceptó términos", value: aceptaTerminos }
-    ];
-
-    const destinatariosBase = DESTINATARIOS_FIJOS
-      .join(",")
-      .split(",")
-      .map(e => e.trim())
-      .filter(esEmailValido_);
-
-    const correoGoogleForm = String(correoGoogle || "").trim();
-    const correoContactoManual = String(correoContacto || "").trim();
-
-    const destinatarios = Array.from(new Set([
-      ...destinatariosBase,
-      correoGoogleForm,
-      correoContactoManual
-    ].filter(esEmailValido_)));
-
-    const MAX_EMAIL_SIZE = 25 * 1024 * 1024;
-    let usarLink = true;
-
-    try {
-      Utilities.sleep(1500);
-
-      const metaFinal = retryDrive_(function () {
-        return Drive.Files.get(archivoPDF.getId(), {
-          supportsAllDrives: true,
-          fields: "size"
-        });
-      });
-
-      const sizeFinal = Number(metaFinal.size || 0);
-      usarLink = sizeFinal > MAX_EMAIL_SIZE;
-
-    } catch (e) {
-      Logger.log("No pude validar tamaño del PDF final: " + e);
-      usarLink = true;
-    }
-
-    const bloqueExtraHTML = usarLink
-      ? `
-        <p style="font-size:14px; color:#333; margin:0;">
-          El PDF consolidado puede consultarse en el siguiente enlace:
-        </p>
-        <p style="margin:10px 0 0 0;">
-          <a href="${archivoPDF.getUrl()}" target="_blank" style="color:#0066cc; font-weight:bold;">
-            Abrir PDF consolidado
+    <div class="topbar-right">
+      <span class="topbar-badge" id="topbarUsuario">👤 admin</span>
+      <div class="dl-wrap">
+        <button class="btn-download" onclick="toggleDlMenu(event)">📥 Descargar ▾</button>
+        <div class="dl-menu" id="dlMenu">
+          <a href="https://docs.google.com/spreadsheets/d/1P5ct48CBdLRAqMgRHDORm7_mLM78o3WxN_9ALYXgFGE/export?format=xlsx" rel="noopener">
+            🌄 Delirio Turístico<span>Descargar Excel</span>
           </a>
-        </p>
-      `
-      : "";
-
-    const replyToFinal = esEmailValido_(correoGoogleForm)
-      ? correoGoogleForm
-      : (esEmailValido_(correoContactoManual) ? correoContactoManual : "");
-
-    if (!destinatarios.length) {
-      Logger.log("No hay correos válidos, no se envía notificación.");
-    } else {
-      enviarEmailInstitucional_({
-        destinatarios,
-        asunto: `${consecutivo} | Registro San Cristóbal | ${nombreCompleto}`,
-        tituloCuerpo: "Registro recibido — San Cristóbal",
-        mensajeIntroHTML: `
-          Buen día,<br>
-          Se ha recibido correctamente una nueva solicitud para 
-          <strong>San Cristóbal — Un Delirio Turístico de Oportunidades</strong>.
-          <br><br>
-          Consecutivo asignado: <strong>${consecutivo}</strong>.
-        `,
-        camposTabla,
-        bloqueExtraHTML,
-        adjuntosBlobs: usarLink ? [] : [archivoPDF.getBlob().setName(nombrePDF)],
-        replyTo: replyToFinal,
-        nombreFrom: "San Cristóbal"
-      });
-    }
-
-    if (copia) {
-      copia.setTrashed(true);
-    }
-
-  } catch (err) {
-    logError_("procesarSolicitudSCTAsync_", err);
-    throw err;
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-/************************************************************
- * PRUEBA MANUAL: PROCESAR ÚLTIMA FILA
- ************************************************************/
-function procesarUltimaRespuestaParaPrueba_SCT() {
-  return procesarUltimaRespuestaParaPrueba_SCTAsync_();
-}
-
-async function procesarUltimaRespuestaParaPrueba_SCTAsync_() {
-  try {
-    const hoja = obtenerHojaRespuestas_();
-    const datos = hoja.getDataRange().getValues();
-
-    if (datos.length < 2) {
-      throw new Error("No hay respuestas para procesar.");
-    }
-
-    const encabezados = datos[0];
-    const filaIndex = datos.length - 1;
-    const fila = datos[filaIndex];
-
-    const evento = {
-      namedValues: {},
-      range: hoja.getRange(filaIndex + 1, 1)
-    };
-
-    for (let i = 0; i < encabezados.length; i++) {
-      const titulo = encabezados[i];
-      if (!titulo) continue;
-      evento.namedValues[titulo] = [fila[i]];
-    }
-
-    await procesarSolicitudSCTAsync_(evento);
-
-    Logger.log("Última respuesta procesada correctamente.");
-
-  } catch (err) {
-    logError_("procesarUltimaRespuestaParaPrueba_SCTAsync_", err);
-    throw err;
-  }
-}
-
-/************************************************************
- * REPROCESAR POR CONSECUTIVO
- ************************************************************/
-function reprocesarPorConsecutivo_SCT(consecutivoBuscado) {
-  return reprocesarPorConsecutivoSCTAsync_(consecutivoBuscado);
-}
-
-async function reprocesarPorConsecutivoSCTAsync_(consecutivoBuscado) {
-  try {
-    const hoja = obtenerHojaRespuestas_();
-    const datos = hoja.getDataRange().getValues();
-
-    if (datos.length < 2) {
-      throw new Error("No hay datos en la hoja.");
-    }
-
-    const headers = datos[0];
-    let filaEncontrada = -1;
-
-    for (let i = 1; i < datos.length; i++) {
-      if (String(datos[i][COL_CONSECUTIVO - 1]).trim() === String(consecutivoBuscado).trim()) {
-        filaEncontrada = i;
-        break;
-      }
-    }
-
-    if (filaEncontrada === -1) {
-      throw new Error("No encontré el consecutivo: " + consecutivoBuscado);
-    }
-
-    const fila = datos[filaEncontrada];
-
-    const evento = {
-      namedValues: {},
-      range: hoja.getRange(filaEncontrada + 1, 1)
-    };
-
-    for (let i = 0; i < headers.length; i++) {
-      const titulo = headers[i];
-      if (!titulo) continue;
-      evento.namedValues[titulo] = [fila[i]];
-    }
-
-    await procesarSolicitudSCTAsync_(evento);
-
-    Logger.log("Reprocesado correctamente: " + consecutivoBuscado);
-
-  } catch (err) {
-    logError_("reprocesarPorConsecutivoSCTAsync_", err);
-    throw err;
-  }
-}
-
-/************************************************************
- * DEBUG HEADERS
- ************************************************************/
-function debugHeaders_SCT() {
-  const hoja = obtenerHojaRespuestas_();
-  const headers = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getDisplayValues()[0];
-
-  Logger.log(headers.join("\n"));
-}
-
-/************************************************************
- * WEB APP — PANEL DE APROBACIONES SCT
- ************************************************************/
-function doGet(e) {
-  if (e && e.parameter && e.parameter.accion === 'buscarConsecutivo') {
-    return buscarConsecutivoCaracterizacion_(e.parameter.consecutivo);
-  }
-  return HtmlService
-    .createHtmlOutputFromFile("index")
-    .setTitle("Panel de Aprobaciones SCT")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
-/************************************************************
- * LISTAR SOLICITUDES PARA HTML
- ************************************************************/
-function listarSolicitudesSCT() {
-  const hoja = obtenerHojaRespuestas_();
-  const data = hoja.getDataRange().getDisplayValues();
-
-  if (data.length < 2) return [];
-
-  const headers = data[0];
-
-  const idxConsecutivo = buscarColumnaPorEncabezado_(hoja, "Consecutivo") - 1;
-  const idxNombres = buscarColumnaPorEncabezado_(hoja, "Nombres") - 1;
-  const idxApellidos = buscarColumnaPorEncabezado_(hoja, "Apellidos") - 1;
-  const idxDocumento = buscarColumnaPorEncabezado_(hoja, "Numero de documento") - 1;
-  const idxEstado = buscarColumnaPorEncabezado_(hoja, "Aprobaciones") - 1;
-  const idxComentario = buscarColumnaPorEncabezado_(hoja, "Comentarios") - 1;
-  const idxPdf = buscarColumnaPorEncabezado_(hoja, "PDF Final") - 1;
-  const idxCarpeta = buscarColumnaPorEncabezado_(hoja, "Carpeta Final") - 1;
-
-  const solicitudes = [];
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-
-    const fullData = {};
-    headers.forEach((h, j) => {
-      fullData[h] = row[j];
-    });
-
-    solicitudes.push({
-      fila: i + 1,
-      consecutivo: row[idxConsecutivo] || "",
-      nombres: row[idxNombres] || "",
-      apellidos: row[idxApellidos] || "",
-      documento: row[idxDocumento] || "",
-      estado: row[idxEstado] || "Por revisar",
-      comentario: row[idxComentario] || "",
-      pdfFinal: row[idxPdf] || "",
-      carpetaFinal: row[idxCarpeta] || "",
-      data: fullData
-    });
-  }
-
-  return solicitudes.reverse();
-}
-
-/************************************************************
- * GUARDAR APROBACIÓN DESDE HTML
- ************************************************************/
-function guardarAprobacionSCT(payload) {
-  const hoja = obtenerHojaRespuestas_();
-
-  const fila = Number(payload.fila || 0);
-  const estado = String(payload.estado || "").trim();
-  const comentarioUsuario = String(payload.comentario || "").trim();
-
-  if (!fila || fila < 2) {
-    throw new Error("Fila inválida.");
-  }
-
-  if (!estado) {
-    throw new Error("Debes seleccionar Aprobado o Rechazado.");
-  }
-
-  if (!comentarioUsuario) {
-    throw new Error("Debes escribir un comentario.");
-  }
-
-  const fechaHora = Utilities.formatDate(
-    new Date(),
-    Session.getScriptTimeZone(),
-    "dd/MM/yyyy HH:mm"
-  );
-
-  const comentario = `[${fechaHora}] ${comentarioUsuario}`;
-
-  const colEstado = buscarColumnaPorEncabezado_(hoja, "Aprobaciones");
-  const colComentario = buscarColumnaPorEncabezado_(hoja, "Comentarios");
-
-  if (colEstado === -1) {
-    throw new Error('No encontré la columna "Aprobaciones".');
-  }
-
-  if (colComentario === -1) {
-    throw new Error('No encontré la columna "Comentarios".');
-  }
-
-  hoja.getRange(fila, colEstado).setValue(estado);
-
-  const comentarioAnterior = hoja.getRange(fila, colComentario).getValue();
-
-  const nuevoComentario = comentarioAnterior
-    ? comentarioAnterior + "\n" + comentario
-    : comentario;
-
-  hoja.getRange(fila, colComentario).setValue(nuevoComentario);
-  SpreadsheetApp.flush();
-
-  enviarCorreoResultadoAprobacionSCT_(fila, estado, nuevoComentario);
-
-  return {
-    ok: true,
-    mensaje: "Aprobación guardada y correo enviado correctamente."
-  };
-}
-
-/************************************************************
- * ENVIAR CORREO DE RESULTADO
- ************************************************************/
-function enviarCorreoResultadoAprobacionSCT_(fila, estado, comentario) {
-  const hoja = obtenerHojaRespuestas_();
-
-  const headers = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getDisplayValues()[0];
-  const row = hoja.getRange(fila, 1, 1, hoja.getLastColumn()).getDisplayValues()[0];
-
-  const obj = {};
-  headers.forEach((h, i) => {
-    obj[h] = row[i];
-  });
-
-  const consecutivo = obj["Consecutivo"] || "";
-  const correoGoogle = obj["Dirección de correo electrónico"] || "";
-  const correoContacto = obj["Correo electrónico de contacto"] || "";
-
-  const nombres = obj["Nombres"] || "";
-  const apellidos = obj["Apellidos"] || "";
-  const documento = obj["Numero de documento"] || "";
-  const telefono = obj["Teléfono de contacto"] || "";
-  const barrio = obj["Barrio de residencia"] || "";
-  const emprendimiento = obj["Nombre del emprendimiento"] || "";
-  const pdfFinal = obj["PDF Final"] || "";
-
-  const destinatariosBase = DESTINATARIOS_FIJOS
-    .join(",")
-    .split(",")
-    .map(e => e.trim())
-    .filter(esEmailValido_);
-
-  const destinatarios = Array.from(new Set([
-    ...destinatariosBase,
-    String(correoGoogle || "").trim(),
-    String(correoContacto || "").trim()
-  ].filter(esEmailValido_)));
-
-  if (!destinatarios.length) {
-    Logger.log("No hay correos válidos, no se envía notificación de aprobación.");
-    return;
-  }
-
-  const colorEstado = estado === "Aprobado" ? "#198754" : "#dc3545";
-
-  const bloqueExtraHTML = `
-    <div style="border:1px solid #eee; border-radius:8px; overflow:hidden;">
-      <div style="background:${colorEstado}; color:#fff; padding:14px 18px; font-weight:bold; font-size:16px;">
-        Resultado de la revisión: ${estado}
+          <a href="https://docs.google.com/spreadsheets/d/1vgVSyJAUcgscl3LKVBlNX_5HEIkDnHHf_u7gF_N88_s/export?format=xlsx" rel="noopener">
+            🎓 Simposio y Fortalecimiento<span>Descargar Excel</span>
+          </a>
+          <a href="https://docs.google.com/spreadsheets/d/1-g4VZPlggPBPAXOB4A9e8CGV4YRjiQXO3VVO9RWH32g/export?format=xlsx" rel="noopener">
+            🥾 Rutas Turísticas<span>Descargar Excel</span>
+          </a>
+        </div>
       </div>
+      <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
 
-      <div style="padding:18px; background:#fff;">
-        <p style="margin:0 0 8px 0; font-weight:bold; color:#333;">Comentario:</p>
-        <p style="margin:0; color:#444; line-height:1.6;">
-          ${comentario}
-        </p>
+  <div class="tabs-wrap">
+    <button class="tab-btn active" onclick="switchTab('delirio')">
+      🌄 Delirio Turístico
+      <span class="tab-count" id="count-delirio">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('simposio')">
+      🎓 Simposio y Fortalecimiento
+      <span class="tab-count" id="count-simposio">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('rutas')">
+      🥾 Rutas Turísticas
+      <span class="tab-count" id="count-rutas">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('creadores')">
+      🎥 Creadores de Contenido
+      <span class="tab-count" id="count-creadores">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('visita')">
+      🏘️ Visita de Caracterización
+      <span class="tab-count" id="count-visita">—</span>
+    </button>
+  </div>
+
+  <div class="app">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar en esta hoja..." oninput="filterRows()">
       </div>
+      <div class="result-count" id="resultCount"></div>
     </div>
 
-    ${
-      pdfFinal
-        ? `<p style="margin-top:18px;">
-            <a href="${pdfFinal}" target="_blank" style="color:#0066cc; font-weight:bold;">
-              Consultar PDF final
-            </a>
-          </p>`
-        : ""
-    }
-  `;
-
-  const replyToFinal = esEmailValido_(correoGoogle)
-    ? correoGoogle
-    : (esEmailValido_(correoContacto) ? correoContacto : "");
-
-  enviarEmailInstitucional_({
-    destinatarios,
-    asunto: `${consecutivo} | Resultado de revisión SCT | ${estado}`,
-    tituloCuerpo: "Resultado de revisión de solicitud",
-    mensajeIntroHTML: `
-      Buen día,<br><br>
-      Se informa que la solicitud con consecutivo 
-      <strong>${consecutivo}</strong> fue revisada.
-    `,
-    camposTabla: [
-      { label: "Consecutivo", value: consecutivo },
-      { label: "Estado", value: estado },
-      { label: "Nombres", value: nombres },
-      { label: "Apellidos", value: apellidos },
-      { label: "Número documento", value: documento },
-      { label: "Teléfono", value: telefono },
-      { label: "Correo formulario", value: correoGoogle },
-      { label: "Correo de contacto", value: correoContacto },
-      { label: "Barrio", value: barrio },
-      { label: "Emprendimiento", value: emprendimiento }
-    ],
-    bloqueExtraHTML,
-    adjuntosBlobs: [],
-    replyTo: replyToFinal,
-    nombreFrom: "San Cristóbal"
-  });
-}
-
-
-/************************************************************
- * REENVIAR CORREO DE "REGISTRO RECIBIDO" A TODAS LAS FILAS
- ************************************************************/
-function reenviarTodosLosCorreosRegistroSCT() {
-  const hoja = obtenerHojaRespuestas_();
-  const data = hoja.getDataRange().getDisplayValues();
-
-  if (data.length < 2) {
-    Logger.log("No hay filas para reenviar.");
-    return;
-  }
-
-  const headers = data[0];
-  let enviados = 0;
-  let omitidos = 0;
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    const fila = i + 1;
-
-    try {
-      const obj = {};
-      headers.forEach((h, j) => { obj[h] = row[j]; });
-
-      const consecutivo = obj["Consecutivo"] || "";
-      if (!consecutivo) {
-        Logger.log(`Fila ${fila} sin consecutivo, se omite.`);
-        omitidos++;
-        continue;
-      }
-
-      const correoGoogle = obj["Dirección de correo electrónico"] || "";
-      const correoContacto = obj["Correo electrónico de contacto"] || "";
-
-      const nombres = obj["Nombres"] || "";
-      const apellidos = obj["Apellidos"] || "";
-      const tipoDoc = obj["Tipo de documento"] || "";
-      const numDoc = obj["Numero de documento"] || "";
-      const orientacionSexual = obj["Orientación sexual"] || "";
-      const poblacionMigrante = obj["¿Pertenece a una población migrante internacional?"] || "";
-      const cualPoblacionMigrante = obj["¿Cuál población migrante internacional?"] || "";
-      const telefono = obj["Teléfono de contacto"] || "";
-      const barrio = obj["Barrio de residencia"] || "";
-      const resideSanCristobal = obj["¿Reside en la localidad de San Cristóbal?"] || "";
-      const cadenaTurismo = obj["¿Pertenece a la cadena de valor del turismo?"] || "";
-      const tipoActividad = obj["Tipo de actividad"] || "";
-      const nombreEmprendimiento = obj["Nombre del emprendimiento"] || "";
-      const rnt = obj["¿Cuenta con Registro Nacional de Turismo?"] || "";
-      const aceptaTerminos = obj["Acepto los términos"] || "";
-      const pdfFinal = obj["PDF Final"] || "";
-
-      const nombreCompleto = limpiarParaArchivo_(`${nombres} ${apellidos}`) || "SOLICITANTE";
-
-      const fechaRegistroFmt = formatearFecha_(obj["Marca temporal"] || new Date());
-
-      const camposTabla = [
-        { label: "Consecutivo", value: consecutivo },
-        { label: "Fecha registro", value: fechaRegistroFmt },
-        { label: "Nombres", value: nombres },
-        { label: "Apellidos", value: apellidos },
-        { label: "Tipo documento", value: tipoDoc },
-        { label: "Número documento", value: numDoc },
-        { label: "Orientación sexual", value: orientacionSexual },
-        { label: "Población migrante internacional", value: poblacionMigrante },
-        { label: "Cuál población migrante internacional", value: cualPoblacionMigrante },
-        { label: "Teléfono", value: telefono },
-        { label: "Correo", value: correoContacto || correoGoogle },
-        { label: "Barrio", value: barrio },
-        { label: "Reside en San Cristóbal", value: resideSanCristobal },
-        { label: "Pertenece a la cadena de valor del turismo", value: cadenaTurismo },
-        { label: "Tipo de actividad", value: tipoActividad },
-        { label: "Nombre del emprendimiento", value: nombreEmprendimiento },
-        { label: "Cuenta con RNT", value: rnt },
-        { label: "Aceptó términos", value: aceptaTerminos }
-      ];
-
-      const destinatariosBase = DESTINATARIOS_FIJOS
-        .join(",")
-        .split(",")
-        .map(e => e.trim())
-        .filter(esEmailValido_);
-
-      const destinatarios = Array.from(new Set([
-        ...destinatariosBase,
-        String(correoGoogle || "").trim(),
-        String(correoContacto || "").trim()
-      ].filter(esEmailValido_)));
-
-      if (!destinatarios.length) {
-        Logger.log(`Fila ${fila} (${consecutivo}): sin correos válidos, se omite.`);
-        omitidos++;
-        continue;
-      }
-
-      const replyToFinal = esEmailValido_(correoGoogle)
-        ? correoGoogle
-        : (esEmailValido_(correoContacto) ? correoContacto : "");
-
-      const bloqueExtraHTML = pdfFinal
-        ? `
-          <p style="font-size:14px; color:#333; margin:0;">
-            El PDF consolidado puede consultarse en el siguiente enlace:
-          </p>
-          <p style="margin:10px 0 0 0;">
-            <a href="${pdfFinal}" target="_blank" style="color:#0066cc; font-weight:bold;">
-              Abrir PDF consolidado
-            </a>
-          </p>
-        `
-        : "";
-
-      enviarEmailInstitucional_({
-        destinatarios,
-        asunto: `${consecutivo} | Registro San Cristóbal | ${nombreCompleto}`,
-        tituloCuerpo: "Registro recibido — San Cristóbal",
-        mensajeIntroHTML: `
-          Buen día,<br>
-          Se ha recibido correctamente una nueva solicitud para 
-          <strong>San Cristóbal — Un Delirio Turístico de Oportunidades</strong>.
-          <br><br>
-          Consecutivo asignado: <strong>${consecutivo}</strong>.
-        `,
-        camposTabla,
-        bloqueExtraHTML,
-        adjuntosBlobs: [],
-        replyTo: replyToFinal,
-        nombreFrom: "San Cristóbal"
-      });
-
-      enviados++;
-      Utilities.sleep(1000); // evita saturar la cuota de envío de Gmail
-
-    } catch (err) {
-      omitidos++;
-      logError_(`reenviarTodosLosCorreosRegistroSCT (fila ${fila})`, err);
-    }
-  }
-
-  Logger.log(`Reenvío terminado. Enviados: ${enviados} | Omitidos/errores: ${omitidos}`);
-}
-
-
-//pruebas
-/************************************************************
- * DETECTAR CORREOS DE "REGISTRO RECIBIDO" YA ENVIADOS — RCT
- ************************************************************/
-function obtenerConsecutivosYaEnviadosRCT_() {
-  const enviados = new Set();
-  const hilos = GmailApp.search('in:sent subject:"Registro San Cristóbal"', 0, 500);
-
-  hilos.forEach(hilo => {
-    const asunto = hilo.getFirstMessageSubject() || "";
-    const m = asunto.match(/^(RCT-\d+)/);
-    if (m) enviados.add(m[1]);
-  });
-
-  return enviados;
-}
-
-/************************************************************
- * REENVIAR SOLO LOS CORREOS DE REGISTRO PENDIENTES — RCT
- * (No toca los correos de aprobación/rechazo, esos son otro flujo)
- ************************************************************/
-function reenviarCorreosPendientesRCT() {
-  const hoja = obtenerHojaRespuestas_();
-  const data = hoja.getDataRange().getDisplayValues();
-
-  if (data.length < 2) {
-    Logger.log("No hay filas para revisar.");
-    return;
-  }
-
-  const headers = data[0];
-  const yaEnviados = obtenerConsecutivosYaEnviadosRCT_();
-
-  Logger.log("Consecutivos con correo de registro YA enviado: " + Array.from(yaEnviados).join(", "));
-
-  let enviados = 0;
-  let sinCuota = 0;
-  let omitidos = 0;
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    const fila = i + 1;
-
-    const obj = {};
-    headers.forEach((h, j) => { obj[h] = row[j]; });
-
-    const consecutivo = obj["Consecutivo"] || "";
-    const carpetaFinal = obj["Carpeta Final"] || "";
-    const pdfFinal = obj["PDF Final"] || "";
-
-    // Solo procesa filas ya completamente procesadas (carpeta + pdf generados)
-    if (!consecutivo || !carpetaFinal || !pdfFinal) {
-      continue;
-    }
-
-    // Si ya está en Gmail Enviados, se salta
-    if (yaEnviados.has(consecutivo)) {
-      continue;
-    }
-
-    try {
-      if (MailApp.getRemainingDailyQuota() < 1) {
-        Logger.log(`Sin cuota disponible. Deteniendo en fila ${fila} (${consecutivo}).`);
-        sinCuota++;
-        break;
-      }
-
-      const correoGoogle = obj["Dirección de correo electrónico"] || "";
-      const correoContacto = obj["Correo electrónico de contacto"] || "";
-
-      const nombres = obj["Nombres"] || "";
-      const apellidos = obj["Apellidos"] || "";
-      const tipoDoc = obj["Tipo de documento"] || "";
-      const numDoc = obj["Numero de documento"] || "";
-      const orientacionSexual = obj["Orientación sexual"] || "";
-      const poblacionMigrante = obj["¿Pertenece a una población migrante internacional?"] || "";
-      const cualPoblacionMigrante = obj["¿Cuál población migrante internacional?"] || "";
-      const telefono = obj["Teléfono de contacto"] || "";
-      const barrio = obj["Barrio de residencia"] || "";
-      const resideSanCristobal = obj["¿Reside en la localidad de San Cristóbal?"] || "";
-      const cadenaTurismo = obj["¿Pertenece a la cadena de valor del turismo?"] || "";
-      const tipoActividad = obj["Tipo de actividad"] || "";
-      const nombreEmprendimiento = obj["Nombre del emprendimiento"] || "";
-      const rnt = obj["¿Cuenta con Registro Nacional de Turismo?"] || "";
-      const aceptaTerminos = obj["Acepto los términos"] || "";
-
-      const nombreCompleto = limpiarParaArchivo_(`${nombres} ${apellidos}`) || "SOLICITANTE";
-      const fechaRegistroFmt = formatearFecha_(obj["Marca temporal"] || new Date());
-
-      const camposTabla = [
-        { label: "Consecutivo", value: consecutivo },
-        { label: "Fecha registro", value: fechaRegistroFmt },
-        { label: "Nombres", value: nombres },
-        { label: "Apellidos", value: apellidos },
-        { label: "Tipo documento", value: tipoDoc },
-        { label: "Número documento", value: numDoc },
-        { label: "Orientación sexual", value: orientacionSexual },
-        { label: "Población migrante internacional", value: poblacionMigrante },
-        { label: "Cuál población migrante internacional", value: cualPoblacionMigrante },
-        { label: "Teléfono", value: telefono },
-        { label: "Correo", value: correoContacto || correoGoogle },
-        { label: "Barrio", value: barrio },
-        { label: "Reside en San Cristóbal", value: resideSanCristobal },
-        { label: "Pertenece a la cadena de valor del turismo", value: cadenaTurismo },
-        { label: "Tipo de actividad", value: tipoActividad },
-        { label: "Nombre del emprendimiento", value: nombreEmprendimiento },
-        { label: "Cuenta con RNT", value: rnt },
-        { label: "Aceptó términos", value: aceptaTerminos }
-      ];
-
-      const destinatariosBase = DESTINATARIOS_FIJOS
-        .join(",")
-        .split(",")
-        .map(e => e.trim())
-        .filter(esEmailValido_);
-
-      const destinatarios = Array.from(new Set([
-        ...destinatariosBase,
-        String(correoGoogle || "").trim(),
-        String(correoContacto || "").trim()
-      ].filter(esEmailValido_)));
-
-      if (!destinatarios.length) {
-        Logger.log(`Fila ${fila} (${consecutivo}): sin correos válidos, se omite.`);
-        omitidos++;
-        continue;
-      }
-
-      const replyToFinal = esEmailValido_(correoGoogle)
-        ? correoGoogle
-        : (esEmailValido_(correoContacto) ? correoContacto : "");
-
-      const bloqueExtraHTML = pdfFinal
-        ? `
-          <p style="font-size:14px; color:#333; margin:0;">
-            El PDF consolidado puede consultarse en el siguiente enlace:
-          </p>
-          <p style="margin:10px 0 0 0;">
-            <a href="${pdfFinal}" target="_blank" style="color:#0066cc; font-weight:bold;">
-              Abrir PDF consolidado
-            </a>
-          </p>
-        `
-        : "";
-
-      enviarEmailInstitucional_({
-        destinatarios,
-        asunto: `${consecutivo} | Registro San Cristóbal | ${nombreCompleto}`,
-        tituloCuerpo: "Registro recibido — San Cristóbal",
-        mensajeIntroHTML: `
-          Buen día,<br>
-          Se ha recibido correctamente una nueva solicitud para 
-          <strong>San Cristóbal — Un Delirio Turístico de Oportunidades</strong>.
-          <br><br>
-          Consecutivo asignado: <strong>${consecutivo}</strong>.
-        `,
-        camposTabla,
-        bloqueExtraHTML,
-        adjuntosBlobs: [],
-        replyTo: replyToFinal,
-        nombreFrom: "San Cristóbal"
-      });
-
-      enviados++;
-      Logger.log(`✅ Correo pendiente enviado: ${consecutivo} (fila ${fila})`);
-      Utilities.sleep(1000);
-
-    } catch (err) {
-      omitidos++;
-      logError_(`reenviarCorreosPendientesRCT (fila ${fila})`, err);
-    }
-  }
-
-  Logger.log(`Terminado. Enviados: ${enviados} | Sin cuota: ${sinCuota} | Omitidos/errores: ${omitidos}`);
-}
-
-
-//github comentarios y aprovaciones
-
-/************************************************************
- * API WEB (fetch) PARA EL SITIO DE GITHUB PAGES
- * — Guarda Aprobación + Comentario SIN enviar correo —
- * (independiente de guardarAprobacionSCT, que sí envía correo
- *  y la sigue usando tu panel interno tal cual)
- ************************************************************/
-function doPost(e) {
-  try {
-    var body = JSON.parse(e.postData.contents);
-    var accion = body.accion;
-
-    if (accion === "guardarAprobacionWeb") {
-      return jsonOut_(guardarAprobacionWebSCT(body));
-    }
-
-    if (accion === "guardarCaracterizacion") {
-      return jsonOut_(guardarCaracterizacionSCT_(body));
-    }
-
-    return jsonOut_({ ok: false, error: "Acción no reconocida." });
-  } catch (err) {
-    return jsonOut_({ ok: false, error: err.message || String(err) });
-  }
-}
-
-function jsonOut_(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function guardarAprobacionWebSCT(payload) {
-  var hoja = obtenerHojaRespuestas_();
-
-  var consecutivo = String(payload.consecutivo || "").trim();
-  var estado = String(payload.estado || "").trim();
-  var comentarioUsuario = String(payload.comentario || "").trim();
-
-  if (!consecutivo) return { ok: false, error: "Falta el consecutivo." };
-  if (!estado) return { ok: false, error: "Debes seleccionar Aprobado o Rechazado." };
-  if (!comentarioUsuario) return { ok: false, error: "Debes escribir un comentario." };
-
-  var colConsecutivo = buscarColumnaPorEncabezado_(hoja, "Consecutivo");
-  var colEstado = buscarColumnaPorEncabezado_(hoja, "Aprobaciones");
-  var colComentario = buscarColumnaPorEncabezado_(hoja, "Comentarios");
-
-  if (colConsecutivo === -1 || colEstado === -1 || colComentario === -1) {
-    return { ok: false, error: 'No encontré las columnas Consecutivo/Aprobaciones/Comentarios.' };
-  }
-
-  var data = hoja.getDataRange().getValues();
-  var filaEncontrada = -1;
-
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][colConsecutivo - 1]).trim() === consecutivo) {
-      filaEncontrada = i + 1; // fila real (1-indexada)
-      break;
-    }
-  }
-
-  if (filaEncontrada === -1) {
-    return { ok: false, error: "No encontré ese consecutivo en la hoja." };
-  }
-
-  var fechaHora = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
-  var comentario = "[" + fechaHora + "] " + comentarioUsuario;
-
-  hoja.getRange(filaEncontrada, colEstado).setValue(estado);
-
-  var comentarioAnterior = hoja.getRange(filaEncontrada, colComentario).getValue();
-  var nuevoComentario = comentarioAnterior ? comentarioAnterior + "\n" + comentario : comentario;
-
-  hoja.getRange(filaEncontrada, colComentario).setValue(nuevoComentario);
-  SpreadsheetApp.flush();
-
-  return { ok: true, mensaje: "Guardado correctamente.", estado: estado, comentarios: nuevoComentario };
-}
-
-
-/************************************************************
- * ============================================================
- * FICHA DE CARACTERIZACIÓN — Delirio Turístico (NUEVO)
- * ============================================================
- ************************************************************/
-
-var HOJA_CARACTERIZACION = 'Caracterizacion';
-var CARPETA_EVIDENCIAS_CARACTERIZACION_ID = '1StnXrTHSjwpQ_w-R1o-6zWMT0Hm5uDhw';
-
-var CARACT_HEADERS = [
-  'Consecutivo','Q1_FechaVisita','Q2_Profesional','Q4_NombreEmprendimiento','Q5_NombreInformante',
-  'Q6_Relacion','Q7_Contacto','Q8_Ubicacion','Q9_Barrio','Q10_UbicacionMaps',
-  'Q11_RecibeVisitantes','Q12_OfreceAlgoInteres','Q13_VisitantesCompran','Q14_ProductoParaTuristas','Q15_PodriaIntegrarseRuta',
-  'Q16_ActividadPrincipal','Q17_ActividadSecundaria','Q18_AnioInicio','Q19_ActividadActiva','Q20_DescripcionActividad',
-  'Q21_PrincipalesProductos','Q22_PrincipalAtractivo','Q23_TipoExperiencia','Q24_ProductoMasSolicitado','Q25_ProductoEstructurado',
-  'Q26_AporteRuta','Q27_ArticulacionCon',
-  'Q28_TipoVisitantes','Q29_CiudadesOrigen','Q30_PaisesOrigen','Q31_ComoConocieron','Q32_EdadPredominante','Q33_GeneroPredominante',
-  'Q34_TipoPoblacion','Q35_ComoLlegan','Q36_MedioTransporte','Q37_PromedioVisitantes','Q38_MomentosAfluencia','Q39_TiempoPermanencia',
-  'Q40_MediosPromocion','Q41_EnlacesRedes','Q42_PiezasPromocion','Q43_VentasDigitales','Q44_PrincipalCanal','Q45_MediosPago',
-  'Q46_PersonasTrabajan','Q47_TrabajanSanCristobal','Q48_ComprasProveedoresLocales','Q49_PrincipalFuenteIngresos','Q50_CostosOperativos',
-  'Q51_PorcentajeComprasLocales','Q52_PorcentajeIngresosTuristicos','Q53_PrincipalNecesidad',
-  'Q54_SeparacionResiduos','Q55_AhorroAguaEnergia','Q56_OtraSostenibilidad',
-  'Q57_RUT','Q58_CamaraComercio','Q59_RNT',
-  'Q60_NecesidadesVisitantes','Q61_NecesidadNoAtendida','Q62_InteresParticipar',
-  'Q63_Infraestructura','Q64_Accesibilidad','Q65_Senalizacion','Q66_Higiene','Q67_Seguridad','Q68_AtencionVisitante',
-  'Q69_CalidadProducto','Q70_CapacidadRecibir','Q71_Sostenibilidad','Q72_GestionResiduos','Q73_AhorroAguaEnergiaEval','Q74_PotencialRuta',
-  'Q75_PotencialTuristico','Q76_IntegraDirectorio','Q77_RecomiendaRuta','Q78_ObservacionProfesional',
-  'Q79_FotoFachada','Q80_FotoProducto','Q81_FotoEntorno','Q82_EvidenciaDocumental','Q83_Firma',
-  'EstadoFicha','UltimaActualizacion'
+    <div class="tab-panel active" id="panel-delirio">
+      <div class="stats-bar" id="statsDelirio" style="display:none;"></div>
+      <div class="loading" id="loading-delirio"><div class="loading-spinner"></div>Cargando datos...</div>
+      <div class="acc-list" id="acclist-delirio" style="display:none;"></div>
+      <div class="empty" id="empty-delirio" style="display:none;"><div class="empty-icon">🔎</div>Sin resultados</div>
+    </div>
+
+    <div class="tab-panel" id="panel-simposio">
+      <div class="loading" id="loading-simposio"><div class="loading-spinner"></div>Cargando datos...</div>
+      <div class="acc-list" id="acclist-simposio" style="display:none;"></div>
+      <div class="empty" id="empty-simposio" style="display:none;"><div class="empty-icon">🔎</div>Sin resultados</div>
+    </div>
+
+    <div class="tab-panel" id="panel-rutas">
+      <div class="loading" id="loading-rutas"><div class="loading-spinner"></div>Cargando datos...</div>
+      <div class="acc-list" id="acclist-rutas" style="display:none;"></div>
+      <div class="empty" id="empty-rutas" style="display:none;"><div class="empty-icon">🔎</div>Sin resultados</div>
+    </div>
+
+    <div class="tab-panel" id="panel-creadores">
+      <div class="loading" id="loading-creadores"><div class="loading-spinner"></div>Cargando datos...</div>
+      <div class="acc-list" id="acclist-creadores" style="display:none;"></div>
+      <div class="empty" id="empty-creadores" style="display:none;"><div class="empty-icon">🔎</div>Sin resultados</div>
+    </div>
+
+    <div class="tab-panel" id="panel-visita">
+      <div class="loading" id="loading-visita"><div class="loading-spinner"></div>Cargando datos...</div>
+      <div class="acc-list" id="acclist-visita" style="display:none;"></div>
+      <div class="empty" id="empty-visita" style="display:none;"><div class="empty-icon">🔎</div>Sin resultados</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/***********************
+ * USUARIOS DEL SISTEMA
+ * Agregar, quitar o cambiar clave aquí
+ ***********************/
+var ADMIN_USUARIOS = [
+  { usuario: 'admin', clave: 'Cedeinco2026*' },
+  { usuario: 'Cedeinco', clave: 'Cedeinco2026*' }
 ];
+
+function validarLoginAdmin(usuario, clave) {
+  if (!usuario || !clave) return { ok: false };
+  var u = String(usuario).trim().toLowerCase();
+  var c = String(clave).trim();
+  var encontrado = ADMIN_USUARIOS.find(function(a){
+    return String(a.usuario).trim().toLowerCase() === u && String(a.clave).trim() === c;
+  });
+  return { ok: !!encontrado, usuario: encontrado ? encontrado.usuario : null };
+}
+
+function showMsg(id, text, ok) {
+  var el = document.getElementById(id);
+  el.textContent = text;
+  el.style.color = ok ? '#166534' : '#b5481a';
+}
+function spin(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
+
+function ejecutarLogin() {
+  var usuario = document.getElementById('loginUsuario').value.trim();
+  var clave   = document.getElementById('loginClave').value.trim();
+  if (!usuario || !clave) { showMsg('msgLogin', 'Ingresa usuario y contraseña.', false); return; }
+
+  spin('spinLogin', true);
+  setTimeout(function(){
+    var data = validarLoginAdmin(usuario, clave);
+    spin('spinLogin', false);
+    if (!data.ok) { showMsg('msgLogin', 'Usuario o contraseña incorrectos.', false); return; }
+    sessionStorage.setItem('sgsc_admin', data.usuario);
+    activarApp(data.usuario);
+  }, 300);
+}
+
+function activarApp(usuario) {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  document.getElementById('topbarUsuario').textContent = '👤 ' + usuario;
+  cargarTodo();
+}
+
+function cerrarSesion() {
+  sessionStorage.removeItem('sgsc_admin');
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('loginUsuario').value = '';
+  document.getElementById('loginClave').value = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var sesion = sessionStorage.getItem('sgsc_admin');
+  if (sesion) activarApp(sesion);
+});
+
+function toggleDlMenu(e) {
+  e.stopPropagation();
+  document.getElementById('dlMenu').classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  document.getElementById('dlMenu').classList.remove('open');
+});
+
+/***********************
+ * DATOS — Google Sheets (CSV publicado, en vivo)
+ ***********************/
+var CSV_URLS = {
+  delirio:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqZ5zncTvdvHMOnLuPSlFgFOxnU0NddjhTxU2GPhFuj1V3cuLav8d2uUbGpn4Pk1Taf73D13GFDXBW/pub?gid=200425436&single=true&output=csv",
+  simposio:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmCYve8OoB3lPMj08sjroaJyWOfH8o51M-9Kvy5DYbUVHVFxtmWr4BBSNBJWWVTPT8d_USQD0CBXcO/pub?output=csv",
+  rutas:     "https://docs.google.com/spreadsheets/d/e/2PACX-1vSnoSaOqdTGB5StRrr8pVoDC9hhhMkNbeJ0mACMR8pAiwuTKjAAUThQTUagyyJAcKLXo-tTzZusLZMc/pub?output=csv",
+  creadores: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRL8Q2DBahNGY5KV53-R1xCTNd2heT1_Aa-X7eTXLan71OuqzoUXFYVQgz94ePxGqwKGQXNPxJ0DAfm/pub?output=csv",
+  visita:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQD9osqJlf4IS-eLOc7JOJmHxad0EQY_pckNjPOrw17Cikk0eY4yoJgcZ6a5wBbqC9f58FH0Ndtelo-/pub?output=csv"
+};
+
+// Web App (Apps Script) que escribe Aprobación/Comentarios en el Sheet de Delirio Turístico
+var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyeZ6iyB43n9W2W6uqavElmoLSonYr2JUF9V7UBpLuXjNLJWfUwbuh3baORYHPDSbU0/exec";
+
+var DATA = { delirio: [], simposio: [], rutas: [] };
+var HEADERS = { delirio: [], simposio: [], rutas: [] };
+var currentTab = "delirio";
+
+// Columnas que no se muestran, por pestaña
+var EXCLUDED_COLUMNS = {
+  delirio: ['Aprobaciones', 'Comentarios'],
+  simposio: [],
+  rutas: [],
+  creadores: [],
+  visita: []
+};
+
+// Pestañas que se muestran como lista acordeón (Consecutivo + Nombre) en vez de tabla
+var ACCORDION_TABS = ['delirio', 'simposio', 'rutas', 'creadores', 'visita'];
+
+function resolverNombre(row) {
+  var nombre = ((row['Nombres'] || '') + ' ' + (row['Apellidos'] || '')).trim();
+  if (nombre) return nombre;
+  if (row['Nombre completo']) return row['Nombre completo'];
+  if (row['Nombre']) return row['Nombre'];
+  if (row['6. Nombre de la persona entrevistada']) return row['6. Nombre de la persona entrevistada'];
+  if (row['5. Nombre del emprendimiento, establecimiento, organización o atractivo']) return row['5. Nombre del emprendimiento, establecimiento, organización o atractivo'];
+  return '(sin nombre)';
+}
+
+// Todas las pestañas ya tienen columna "Consecutivo" real.
+function resolverConsecutivo(tab, row, i) {
+  return row['Consecutivo'] || (i + 1);
+}
+
+// Apartados del detalle de "Creadores de Contenido" — mismo orden del formulario original
+var CREADORES_SECTIONS = [
+  { title: '📋 Registro', fields: ['Consecutivo', 'Marca temporal', 'Dirección de correo electrónico'] },
+  { title: '🧑 Datos Personales', fields: [
+    'Nombres', 'Apellidos', 'Fecha de nacimiento', 'Tipo de documento', 'Numero de documento',
+    'Género', 'Orientación sexual', '¿Es víctima del conflicto?', '¿Tiene discapacidad?', 'Grupo étnico',
+    '¿Es joven / adulto mayor?', 'Teléfono de contacto', 'Correo electrónico de contacto',
+    '¿Pertenece a una población migrante internacional?', '¿Cuál población migrante internacional?'
+  ]},
+  { title: '🏠 Información de Residencia', fields: [
+    '¿Reside en la localidad de San Cristóbal?', 'Barrio de residencia', 'Dirección de residencia'
+  ]},
+  { title: '🎬 Perfil como Creador de Contenido', fields: [
+    'Nombre artístico (si aplica)', '¿Hace cuánto crea contenido digital?', '¿Cuál es su principal temática?',
+    'Describa brevemente su experiencia como creador de contenido.'
+  ]},
+  { title: '📸 Instagram', fields: [
+    'Utiliza Instagram', 'Nombre de cómo sale en Instagram', 'Enlace de Instagram', 'Número de seguidores de Instagram',
+    'Adjunte una imagen de su red social Instagram'
+  ]},
+  { title: '🎵 TikTok', fields: [
+    'Utiliza TikTok', 'Nombre de cómo sale en TikTok', 'Enlace de TikTok', 'Número de seguidores de TikTok',
+    'Adjunte una imagen de su red social TikTok'
+  ]},
+  { title: '📘 Facebook', fields: [
+    'Utiliza Facebook', 'Nombre de cómo sale en Facebook', 'Enlace de Facebook', 'Número de seguidores de Facebook',
+    'Adjunte una imagen de su red social Facebook'
+  ]},
+  { title: '▶️ YouTube', fields: [
+    'Utiliza YouTube', 'Nombre de cómo sale en YouTube', 'Enlace de YouTube', 'Número de seguidores de YouTube',
+    'Adjunte una imagen de su red social YouTube'
+  ]},
+  { title: '🌐 Otra Red Social', fields: [
+    'Utiliza Otra red social', 'Nombre de cómo sale en Otra red social', 'Enlace de Otra red social',
+    'Número de seguidores de Otra red social', 'Adjunte una imagen de su Otra red social',
+    '¿Cuenta con mínimo 600 seguidores?'
+  ]},
+  { title: '🎥 Experiencia Audiovisual y Turismo', fields: [
+    '¿Ha producido contenido relacionado con turismo?', 'Si respondió sí, describa la experiencia',
+    'Incluya enlaces de mínimo tres contenidos publicados.', 'Portafolio digital (opcional)',
+    'Seleccione el sector donde participa', 'Explique cómo aporta actualmente al turismo de San Cristóbal'
+  ]},
+  { title: '📅 Disponibilidad', fields: [
+    '¿Tiene disponibilidad para asistir a reuniones de planeación?', '¿Puede realizar trabajo de campo?',
+    '¿Cuenta con equipo propio?'
+  ]},
+  { title: '💡 Propuesta Creativa', fields: [
+    '¿Por qué desea participar en esta convocatoria?',
+    'Seleccione las categorías sobre las cuales preferiría producir contenido.',
+    'Describa una idea de reel para promocionar San Cristóbal'
+  ]},
+  { title: '✅ Legal', fields: [
+    '¿Acepta los términos, condiciones y autorizaciones anteriormente descritos?'
+  ]},
+  { title: '📎 Documentos Adjuntos', fields: [
+    'Documento de identidad', 'Soporte de residencia', 'Portafolio (opcional)', 'Certificaciones (si aplica)',
+    'Carpeta Final', 'PDF Final'
+  ]},
+  { title: '💬 Comentario', fields: ['¿Tiene algún comentario?'] }
+];
+
+// Campos que no se muestran en ningún apartado de Creadores de Contenido
+var CREADORES_CAMPOS_OCULTOS = ['Desea volver a la autorización de términos y condiciones.'];
+
+function renderCreadoresDetail(row, headers) {
+  var mostrados = {};
+  CREADORES_SECTIONS.forEach(function(sec){ sec.fields.forEach(function(f){ mostrados[f] = true; }); });
+  CREADORES_CAMPOS_OCULTOS.forEach(function(f){ mostrados[f] = true; });
+
+  var html = CREADORES_SECTIONS.map(function(sec){
+    var presentes = sec.fields.filter(function(f){ return headers.indexOf(f) !== -1; });
+    if (!presentes.length) return '';
+    var campos = presentes.map(function(h){
+      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(h)+'</div>' +
+        '<div class="detail-value">'+cellHtml(row[h])+'</div></div>';
+    }).join('');
+    return '<div class="detail-section"><div class="detail-section-title">'+sec.title+'</div>' +
+      '<div class="detail-grid">'+campos+'</div></div>';
+  }).join('');
+
+  var otros = headers.filter(function(h){ return !mostrados[h]; });
+  if (otros.length) {
+    var camposOtros = otros.map(function(h){
+      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(h)+'</div>' +
+        '<div class="detail-value">'+cellHtml(row[h])+'</div></div>';
+    }).join('');
+    html += '<div class="detail-section"><div class="detail-section-title">ℹ️ Otros campos</div>' +
+      '<div class="detail-grid">'+camposOtros+'</div></div>';
+  }
+
+  return html;
+}
+
+// Apartados del detalle de "Visita de Caracterización" — mismo orden del formulario original.
+var VISITA_LABEL_OVERRIDES = {};
+
+var VISITA_SECTIONS = [
+  { title: '📋 Registro', fields: [
+    'Consecutivo', 'Marca temporal', '1. ¿La persona entrevistada manifiesta haber recibido y comprendido la información anterior?',
+    '2. Fecha de la visita', '3. Nombre del profesional'
+  ]},
+  { title: '🎯 Filtro Inicial de Vocación Turística', fields: [
+    '¿Actualmente recibe personas que visitan San Cristóbal provenientes de otras localidades de Bogotá, municipios, ciudades del país o de otros países?',
+    '¿Su actividad ofrece actualmente algún producto, servicio, atractivo o experiencia que pueda ser de interés para visitantes?',
+    '¿Los visitantes hacen uso, compran, consumen o participan actualmente en alguno de sus productos, servicios o experiencias?',
+    '¿Considera que su actividad podría convertirse o fortalecerse como una experiencia, producto o servicio turístico?',
+    '¿Cuál considera que es actualmente la principal relación de su actividad con el turismo?',
+    'Resultado preliminar del filtro', 'Observaciones del profesional (opcional)'
+  ]},
+  { title: '🧑 Información General del Actor', fields: [
+    '5. Nombre del emprendimiento, establecimiento, organización o atractivo', '6. Nombre de la persona entrevistada',
+    '7. Cargo o relación con el emprendimiento', '8. Número de teléfono / WhatsApp', '9. Correo electrónico',
+    '10. ¿Cuenta con NIT?', '11. NIT'
+  ]},
+  { title: '📍 Dirección', fields: [
+    '12. Dirección', '13. Barrio', '14. Ubicación en Google Maps',
+    '15. ¿La actividad se desarrolla en un establecimiento físico?', '16. ¿Cuál es el tipo de actor que estamos visitando?'
+  ]},
+  { title: '🏛️ Información Histórica y Trayectoria', fields: [
+    '17. ¿Hace cuánto desarrolla esta actividad?', '18. ¿En qué año inició esta actividad?',
+    '19. ¿La actividad ha cambiado desde que inició?', '20. Breve historia del emprendimiento o actividad'
+  ]},
+  { title: '🎯 Filtro de Vocación Turística', fields: [
+    '21. ¿Ha realizado alguna actividad turística con personas provenientes de otras localidades, ciudades, municipios o países?',
+    '22. ¿Su actividad ofrece actualmente un producto, servicio, atractivo o experiencia que pueda ser disfrutada por visitantes?',
+    '23. ¿Cuál es el principal motivo por el que un visitante llega a su actividad o establecimiento?',
+    '24. ¿Qué puede hacer, conocer, comprar o experimentar un visitante en este lugar?',
+    '25. ¿Estaría dispuesto a integrar su actividad en una ruta o experiencia turística de San Cristóbal?'
+  ]},
+  { title: '💼 Actividad y Oferta', fields: [
+    '26. ¿Cuál es la actividad principal?', '27. ¿Tiene otras actividades relacionadas?',
+    '28. ¿Cuáles son sus tres principales productos o servicios?', '29. ¿Cuál es el producto o servicio más solicitado por los visitantes?',
+    '30. ¿Tiene algún producto, servicio o experiencia diseñada específicamente para turistas o visitantes?',
+    '31. Describa brevemente esa experiencia'
+  ]},
+  { title: '📣 Comunicaciones, Promoción y Comercialización', fields: [
+    '32. ¿Tiene presencia en redes sociales?', '33. Indique los enlaces de sus redes sociales',
+    '34. ¿Cuenta con página web?', '35. Enlace de la página web', '36. ¿Cuenta con piezas de promoción de su actividad?',
+    '37. ¿Realiza ventas o reservas por medios digitales?', '38. ¿A través de cuáles medios realiza ventas o reservas digitales?',
+    '39. ¿Qué otros medios utiliza para promocionar su actividad?', '40. ¿Cuál considera que es actualmente su principal canal de promoción?'
+  ]},
+  { title: '👥 Perfil de los Visitantes', fields: [
+    '41. ¿Qué tipo de visitantes atiende?', '42. ¿De qué ciudades colombianas provienen principalmente sus visitantes?',
+    '43. ¿De qué países provienen principalmente sus visitantes internacionales?', '44. ¿Qué grupo de edad predomina entre sus visitantes?',
+    '45. ¿Qué género predomina entre sus visitantes?', '46. ¿Qué tipo de población atiende principalmente?'
+  ]},
+  { title: '🚶 Comportamiento y Movilidad del Visitante', fields: [
+    '47. ¿Cómo suelen llegar los visitantes?', '48. ¿Cómo llegan principalmente al establecimiento?',
+    '49. ¿Cómo conocieron principalmente el establecimiento o experiencia?'
+  ]},
+  { title: '⏱️ Tiempo y Afluencia', fields: [
+    '50. ¿Cuáles son los días de mayor afluencia?', '51. ¿Cuál es la jornada de mayor afluencia?',
+    '52. ¿Cuál es el horario habitual de funcionamiento?', '53. ¿Cuánto tiempo permanece aproximadamente un visitante en el lugar?'
+  ]},
+  { title: '🔢 Número de Visitantes', fields: [
+    '54. ¿Cuántos visitantes atiende aproximadamente en un día normal?', '55. ¿Cuántos visitantes atiende aproximadamente en un mes?',
+    '56. ¿Cuándo recibe mayor cantidad de visitantes?'
+  ]},
+  { title: '💰 Aspectos Financieros', fields: [
+    '57. ¿Cuál es aproximadamente el rango de ingresos mensuales generados por esta actividad?',
+    '58. ¿Qué porcentaje aproximado de sus ingresos proviene de visitantes o actividades turísticas?',
+    '59. ¿Cuál es su principal fuente de ingresos?', '60. ¿Cuáles son sus principales costos operativos?',
+    '61. ¿Cuál es su principal necesidad financiera?'
+  ]},
+  { title: '💳 Métodos de Pago', fields: [
+    '62. ¿Qué medios de pago utilizan sus visitantes?', '63. ¿Cuál es el medio de pago más utilizado?'
+  ]},
+  { title: '👔 Empleo y Economía Local', fields: [
+    '64. ¿Cuántas personas trabajan actualmente en el emprendimiento?', '65. ¿Cuántas de estas personas viven en San Cristóbal?',
+    '66. ¿Compra productos o servicios a proveedores de San Cristóbal?', '67. ¿Qué productos o servicios compra localmente?',
+    '68. Aproximadamente, ¿qué porcentaje de sus compras proviene de proveedores de San Cristóbal?'
+  ]},
+  { title: '🆘 Necesidades de los Visitantes', fields: [
+    '69. ¿Qué necesidades o dificultades identifica con mayor frecuencia entre los visitantes?',
+    '70. ¿Qué le solicitan los visitantes que actualmente usted no puede ofrecer?'
+  ]},
+  { title: '🗺️ Rutas y Productos Turísticos', fields: [
+    '71. ¿En qué tipo de ruta considera que podría participar?',
+    '72. ¿Qué otros lugares, emprendimientos o atractivos deberían integrarse con usted en esa ruta?',
+    '73. ¿Qué experiencia podría aportar a una ruta turística?', '74. ¿Cuánto tiempo puede dedicar a recibir un grupo de visitantes?',
+    '75. ¿Cuál considera que es el principal atractivo de su actividad para un visitante?'
+  ]},
+  { title: '🌱 Sostenibilidad Ambiental', fields: [
+    '76. ¿Realiza separación de residuos?', '77. ¿Qué tipo de separación realiza?', '78. ¿Realiza acciones para ahorrar agua?',
+    '79. ¿Realiza acciones para ahorrar energía?', '80. ¿Realiza alguna otra acción de sostenibilidad ambiental?'
+  ]},
+  { title: '📝 Observación Técnica del Profesional', fields: [
+    '81. Evaluación técnica [Infraestructura]', '81. Evaluación técnica [Accesibilidad]', '81. Evaluación técnica [Señalización]',
+    '81. Evaluación técnica [Higiene]', '81. Evaluación técnica [Seguridad]', '81. Evaluación técnica [Atención al visitante]',
+    '81. Evaluación técnica [Calidad del producto/servicio]', '81. Evaluación técnica [Capacidad para recibir visitantes]',
+    '81. Evaluación técnica [Sostenibilidad]', '81. Evaluación técnica [Gestión de residuos]',
+    '81. Evaluación técnica [Ahorro de agua y energía]', '81. Evaluación técnica [Potencial para integrarse a una ruta]'
+  ]},
+  { title: '⚖️ Formalización', fields: [
+    '82. ¿Cuenta con Registro Único Tributario - RUT?', '83. ¿Cuenta con matrícula o registro en Cámara de Comercio?',
+    '84. ¿Cuenta con Registro Nacional de Turismo - RNT?', '85. ¿Cuenta con otros permisos o registros requeridos para su actividad?'
+  ]},
+  { title: '🏷️ Clasificación Técnica', fields: [
+    '86. ¿Cómo se clasifica técnicamente este actor?', '87. Nivel de prioridad para el proyecto',
+    '88. ¿Debe integrar el Directorio de Turismo de San Cristóbal?', '89. ¿Qué tipo de fortalecimiento requiere?'
+  ]},
+  { title: '📸 Evidencias y Concepto Final', fields: [
+    '90. Fotografía de la fachada o lugar', '91. Fotografía del producto/servicio', '92. Fotografía del entorno',
+    '93. ¿Existe alguna evidencia documental que deba anexarse?', '94. Fortalezas principales identificadas',
+    '95. Principales debilidades o dificultades', '96. Principal oportunidad turística',
+    '97. Recomendación para integrar este actor a una ruta', '98. ¿Requiere una segunda visita?',
+    '99. Observaciones adicionales', '100. Adjuntar firma'
+  ]},
+  { title: '📎 Documentos del Sistema', fields: ['Carpeta Final', 'PDF Final'] }
+];
+
+function renderVisitaDetail(row, headers) {
+  var mostrados = {};
+  VISITA_SECTIONS.forEach(function(sec){ sec.fields.forEach(function(f){ mostrados[f] = true; }); });
+
+  var html = VISITA_SECTIONS.map(function(sec){
+    var presentes = sec.fields.filter(function(f){ return headers.indexOf(f) !== -1; });
+    if (!presentes.length) return '';
+    var campos = presentes.map(function(h){
+      var label = VISITA_LABEL_OVERRIDES[h] || h;
+      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(label)+'</div>' +
+        '<div class="detail-value">'+cellHtml(row[h])+'</div></div>';
+    }).join('');
+    return '<div class="detail-section"><div class="detail-section-title">'+sec.title+'</div>' +
+      '<div class="detail-grid">'+campos+'</div></div>';
+  }).join('');
+
+  var otros = headers.filter(function(h){ return !mostrados[h]; });
+  if (otros.length) {
+    var camposOtros = otros.map(function(h){
+      var label = VISITA_LABEL_OVERRIDES[h] || h;
+      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(label)+'</div>' +
+        '<div class="detail-value">'+cellHtml(row[h])+'</div></div>';
+    }).join('');
+    html += '<div class="detail-section"><div class="detail-section-title">ℹ️ Otros campos</div>' +
+      '<div class="detail-grid">'+camposOtros+'</div></div>';
+  }
+
+  return html;
+}
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
+  var rows = [];
+  var cur = "", row = [], inQ = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i], next = text[i+1];
+    if (inQ) {
+      if (ch === '"' && next === '"') { cur += '"'; i++; }
+      else if (ch === '"') { inQ = false; }
+      else { cur += ch; }
+    } else {
+      if (ch === '"') { inQ = true; }
+      else if (ch === ',') { row.push(cur); cur = ""; }
+      else if (ch === '\r') { /* skip */ }
+      else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ""; }
+      else { cur += ch; }
+    }
+  }
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(function(r){ return r.some(function(c){ return c.trim() !== ""; }); });
+}
+
+function toObjects(rows, excluded) {
+  if (rows.length < 1) return { headers: [], data: [] };
+  var allHeaders = rows[0].map(function(h){ return h.trim(); });
+  excluded = excluded || [];
+  var headers = allHeaders.filter(function(h){ return excluded.indexOf(h) === -1; });
+  var data = [];
+  for (var i = 1; i < rows.length; i++) {
+    var obj = {};
+    allHeaders.forEach(function(h, idx){ obj[h] = (rows[i][idx] || "").trim(); });
+    data.push(obj);
+  }
+  return { headers: headers, data: data };
+}
+
+function isUrl(v) { return /^https?:\/\//i.test(v); }
+
+function cellHtml(v) {
+  if (!v) return '<span class="cell-empty">N/A</span>';
+  var urlRegex = /https?:\/\/[^\s,]+/g;
+  var urls = v.match(urlRegex);
+  if (!urls) return escapeHtml(v);
+  var count = 0;
+  var placeholders = [];
+  var withPlaceholders = v.replace(urlRegex, function(match){
+    count++;
+    var ph = '\u0000LINK' + count + '\u0000';
+    placeholders.push({ ph: ph, url: match, label: urls.length > 1 ? ('Ver ' + count + ' ↗') : 'Ver ↗' });
+    return ph;
+  });
+  var out = escapeHtml(withPlaceholders);
+  placeholders.forEach(function(p){
+    out = out.replace(p.ph, '<a href="' + p.url + '" target="_blank" rel="noopener">' + p.label + '</a>');
+  });
+  return out;
+}
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function renderTable(tab) {
+  var headers = HEADERS[tab];
+  var data = DATA[tab];
+  var table = document.getElementById("table-" + tab);
+  var thead = "<thead><tr>" + headers.map(function(h){ return "<th>"+escapeHtml(h)+"</th>"; }).join("") + "</tr></thead>";
+  var tbody = "<tbody>" + data.map(function(row, i){
+    return "<tr data-search='"+ escapeHtml(headers.map(function(h){return row[h]||"";}).join(" ").toLowerCase()).replace(/'/g,"&#39;") +"'>" +
+      headers.map(function(h){ return "<td>"+cellHtml(row[h])+"</td>"; }).join("") +
+      "</tr>";
+  }).join("") + "</tbody>";
+  table.innerHTML = thead + tbody;
+}
+
+function renderAccordion(tab) {
+  var headers = HEADERS[tab];
+  var data = DATA[tab];
+  var list = document.getElementById("acclist-" + tab);
+  list.innerHTML = data.map(function(row, i){
+    var id = tab + "-" + i;
+    var num = resolverConsecutivo(tab, row, i);
+    var nombre = resolverNombre(row);
+    var searchStr = headers.map(function(h){ return row[h] || ""; }).join(" ").toLowerCase().replace(/"/g,"&quot;");
+    var detailFields = headers.filter(function(h){
+      return h !== 'Consecutivo' && h !== 'Nombres' && h !== 'Apellidos' && h !== 'Nombre completo' && h !== 'Nombre';
+    });
+    var detailHtml = tab === 'creadores'
+      ? renderCreadoresDetail(row, headers)
+      : tab === 'visita'
+      ? renderVisitaDetail(row, headers)
+      : detailFields.map(function(h){
+          return '<div class="detail-item"><div class="detail-label">'+escapeHtml(h)+'</div>' +
+            '<div class="detail-value">'+cellHtml(row[h])+'</div></div>';
+        }).join("");
+
+    var estadoPillHtml = "";
+    var approvalHtml = "";
+    var caracterizacionHtml = "";
+    if (tab === 'delirio') {
+      var consecutivoStr = String(num).replace(/'/g, "\\'");
+      var estadoActual = (row['Aprobaciones'] || '').trim();
+      var comentariosActual = (row['Comentarios'] || '').trim();
+      var pillClass = /aprob/i.test(estadoActual) ? 'aprobado' : /rechaz/i.test(estadoActual) ? 'rechazado' : 'pendiente';
+      var pillLabel = estadoActual || 'Pendiente';
+
+      estadoPillHtml = '<span class="approval-pill '+pillClass+'">'+escapeHtml(pillLabel)+'</span>';
+
+      var historialHtml = comentariosActual
+        ? '<div class="approval-history-list">' + comentariosActual.split('\n').filter(Boolean).map(function(linea){
+            var m = linea.match(/^\[([^\]]+)\]\s*([\s\S]*)$/);
+            if (m) {
+              return '<div class="approval-comment"><div class="approval-comment-date">'+escapeHtml(m[1])+'</div>' +
+                '<div class="approval-comment-text">'+escapeHtml(m[2])+'</div></div>';
+            }
+            return '<div class="approval-comment"><div class="approval-comment-text">'+escapeHtml(linea)+'</div></div>';
+          }).join('') + '</div>'
+        : '<div class="approval-history-empty">Sin comentarios aún.</div>';
+
+      approvalHtml =
+        '<div class="approval-box">' +
+          '<div class="approval-title">✅ Aprobación y comentarios</div>' +
+          '<div class="approval-current"><span class="approval-pill '+pillClass+'">'+escapeHtml(pillLabel)+'</span></div>' +
+          historialHtml +
+          '<div class="approval-form">' +
+            '<select id="estado-'+id+'">' +
+              '<option value="">Seleccionar estado</option>' +
+              '<option value="Aprobado"'+(estadoActual==='Aprobado'?' selected':'')+'>Aprobado</option>' +
+              '<option value="Rechazado"'+(estadoActual==='Rechazado'?' selected':'')+'>Rechazado</option>' +
+            '</select>' +
+            '<textarea id="comentario-'+id+'" placeholder="Escribe el nuevo comentario..."></textarea>' +
+            '<button class="btn btn-primary" style="width:auto;align-self:flex-start;" id="btnGuardar-'+id+'" ' +
+              'onclick="guardarAprobacion(\''+tab+'\','+i+',\''+consecutivoStr+'\')">Guardar</button>' +
+            '<div class="approval-msg" id="msg-'+id+'"></div>' +
+          '</div>' +
+        '</div>';
+
+      // ===== Ficha de Caracterización (carga bajo demanda) =====
+      caracterizacionHtml =
+        '<div class="approval-box">' +
+          '<div class="approval-title">📋 Ficha de Caracterización</div>' +
+          '<button class="btn btn-primary" style="width:auto;" onclick="abrirFichaCaracterizacion(\''+consecutivoStr+'\')">Abrir / cargar ficha</button>' +
+          '<div id="caracContainer-'+consecutivoStr+'" style="margin-top:14px;"></div>' +
+        '</div>';
+    }
+
+    return '<div class="acc-row" data-search="'+searchStr+'">' +
+      '<div class="acc-header" onclick="toggleAcc(\''+id+'\')" id="acchead-'+id+'">' +
+        '<span class="acc-num">#'+escapeHtml(String(num))+'</span>' +
+        '<span class="acc-name">'+escapeHtml(nombre)+'</span>' +
+        estadoPillHtml +
+        '<span class="acc-chevron">▼</span>' +
+      '</div>' +
+      '<div class="acc-detail" id="accdetail-'+id+'">' +
+        ((tab === 'creadores' || tab === 'visita') ? detailHtml : '<div class="detail-grid">'+detailHtml+'</div>') +
+        caracterizacionHtml +
+        approvalHtml +
+      '</div>' +
+    '</div>';
+  }).join("");
+
+  if (tab === 'delirio') renderStatsDelirio();
+}
+
+function renderStatsDelirio() {
+  var data = DATA['delirio'];
+  var total = data.length;
+  var aprobados = data.filter(function(r){ return /aprob/i.test(r['Aprobaciones'] || ''); }).length;
+  var rechazados = data.filter(function(r){ return /rechaz/i.test(r['Aprobaciones'] || ''); }).length;
+  var pendientes = total - aprobados - rechazados;
+
+  var el = document.getElementById('statsDelirio');
+  el.innerHTML =
+    '<div class="stat-card total"><div class="stat-label">Total</div><div class="stat-value">'+total+'</div></div>' +
+    '<div class="stat-card pendiente"><div class="stat-label">Pendientes</div><div class="stat-value">'+pendientes+'</div></div>' +
+    '<div class="stat-card aprobado"><div class="stat-label">Aprobados</div><div class="stat-value">'+aprobados+'</div></div>' +
+    '<div class="stat-card rechazado"><div class="stat-label">Rechazados</div><div class="stat-value">'+rechazados+'</div></div>';
+  el.style.display = 'grid';
+}
 
 /****************************************************************
- * EJECUTAR UNA SOLA VEZ, MANUALMENTE, ANTES DE USAR EL FORMULARIO:
- * 1. Arriba en el editor, en el menú desplegable de funciones,
- *    selecciona "crearHojaCaracterizacion".
- * 2. Dale clic a ▶ Ejecutar y acepta los permisos.
- * 3. Revisa el Sheet: aparece la pestaña "Caracterizacion" con
- *    formato de tabla y todos los encabezados.
+ * MÓDULO: Ficha de Caracterización (Delirio Turístico)
+ * Pega este bloque completo DENTRO de la etiqueta <script> del panel
+ * existente, justo ANTES de la línea: function toggleAcc(id) { ... }
  ****************************************************************/
-function crearHojaCaracterizacion() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var hoja = ss.getSheetByName(HOJA_CARACTERIZACION);
-  if (!hoja) {
-    hoja = ss.insertSheet(HOJA_CARACTERIZACION);
+
+// URL del mismo Web App que ya usas para guardarAprobacionWeb
+// (WEBAPP_URL ya existe en tu panel — no la dupliques, este módulo la reutiliza)
+
+var CARACT_QUESTIONS = [
+  // ---- Sección 2: Control de la visita ----
+  { id:'Q1_FechaVisita', section:2, label:'1. Fecha de la visita', type:'date', required:true },
+  { id:'Q2_Profesional', section:2, label:'2. Nombre del profesional/encuestador', type:'text', required:true },
+  { id:'Q4_NombreEmprendimiento', section:2, label:'4. Nombre del emprendimiento/establecimiento/organización/atractivo', type:'text', required:true },
+  { id:'Q5_NombreInformante', section:2, label:'5. Nombre de la persona que suministra la información', type:'text', required:true },
+  { id:'Q6_Relacion', section:2, label:'6. ¿Cuál es su relación con la actividad?', type:'select',
+    options:['Propietario/a','Representante legal','Administrador/a','Emprendedor/a','Integrante de organización o colectivo','Trabajador/a','Otro'] },
+  { id:'Q7_Contacto', section:2, label:'7. Datos de contacto (teléfono/WhatsApp)', type:'text' },
+  { id:'Q8_Ubicacion', section:2, label:'8. Ubicación del establecimiento', type:'text' },
+  { id:'Q9_Barrio', section:2, label:'9. Barrio', type:'text' },
+  { id:'Q10_UbicacionMaps', section:2, label:'10. Ubicación en Google Maps (enlace)', type:'text' },
+
+  // ---- Sección 3: Filtro de vinculación turística (las 5 preguntas clave) ----
+  { id:'Q11_RecibeVisitantes', section:3, filtro:true, label:'11. ¿Actualmente recibe, atiende o presta servicios a visitantes o turistas?', type:'select',
+    options:['Sí, frecuentemente.','Sí, ocasionalmente.','Muy pocas veces.','No actualmente.'] },
+  { id:'Q12_OfreceAlgoInteres', section:3, filtro:true, label:'12. ¿Su actividad ofrece algo de interés para visitantes?', type:'select', options:['Sí.','Parcialmente.','No.'] },
+  { id:'Q13_VisitantesCompran', section:3, filtro:true, label:'13. ¿Los visitantes compran, consumen o participan en lo que ofrece?', type:'select',
+    options:['Sí, representan una parte importante de la actividad.','Sí, pero representan una parte pequeña.','Ocasionalmente.','No actualmente.'] },
+  { id:'Q14_ProductoParaTuristas', section:3, filtro:true, label:'14. ¿Tiene un producto/experiencia diseñado para turistas?', type:'select',
+    options:['Sí.','Está en proceso de desarrollarlo.','No.'] },
+  { id:'Q15_PodriaIntegrarseRuta', section:3, filtro:true, label:'15. ¿Podría integrarse o fortalecerse como parte de una ruta turística?', type:'select',
+    options:['Sí, claramente.','Sí, pero requiere fortalecimiento.','No está seguro/a.','No.'] },
+
+  // ---- Sección 4: Actividad y trayectoria ----
+  { id:'Q16_ActividadPrincipal', section:4, showIf:'potencial_o_activo', label:'16. Actividad principal', type:'select',
+    options:['Gastronomía/alimentación','Cultura y arte','Patrimonio/historia','Turismo religioso','Naturaleza/ecoturismo','Recreación/deporte','Alojamiento','Guianza','Operación turística','Artesanía','Turismo comunitario','Comercio','Otra'] },
+  { id:'Q17_ActividadSecundaria', section:4, showIf:'potencial_o_activo', label:'17. Actividad secundaria relacionada con turismo', type:'checkbox',
+    options:['Gastronomía/alimentación','Cultura y arte','Patrimonio/historia','Turismo religioso','Naturaleza/ecoturismo','Recreación/deporte','Alojamiento','Guianza','Operación turística','Artesanía','Turismo comunitario','Comercio','Otra'] },
+  { id:'Q18_AnioInicio', section:4, showIf:'potencial_o_activo', label:'18. ¿Desde qué año desarrolla esta actividad?', type:'number' },
+  { id:'Q19_ActividadActiva', section:4, showIf:'potencial_o_activo', label:'19. ¿La actividad está activa?', type:'select',
+    options:['Sí, permanentemente.','Sí, por temporadas.','Intermitentemente.','No actualmente.'] },
+  { id:'Q20_DescripcionActividad', section:4, showIf:'potencial_o_activo', label:'20. Describa brevemente la actividad, producto o servicio', type:'textarea' },
+
+  // ---- Sección 5: Oferta y potencial ----
+  { id:'Q21_PrincipalesProductos', section:5, showIf:'potencial_o_activo', label:'21. Principales productos, servicios o experiencias', type:'textarea' },
+  { id:'Q22_PrincipalAtractivo', section:5, showIf:'potencial_o_activo', label:'22. Principal atractivo para un visitante', type:'textarea' },
+  { id:'Q23_TipoExperiencia', section:5, showIf:'potencial_o_activo', label:'23. Tipo de experiencia que puede ofrecer', type:'checkbox',
+    options:['Gastronómica','Cultural','Artística','Religiosa','Histórica/patrimonial','Naturaleza','Comunitaria','Recreativa/deportiva','Otra'] },
+  { id:'Q24_ProductoMasSolicitado', section:5, showIf:'potencial_o_activo', label:'24. Producto/servicio más solicitado', type:'text' },
+  { id:'Q25_ProductoEstructurado', section:5, showIf:'potencial_o_activo', label:'25. ¿Cuenta con producto/paquete/recorrido estructurado?', type:'select', options:['Sí.','En proceso.','No.'] },
+  { id:'Q26_AporteRuta', section:5, showIf:'potencial_o_activo', label:'26. ¿Qué podría aportar a una ruta turística?', type:'textarea' },
+  { id:'Q27_ArticulacionCon', section:5, showIf:'potencial_o_activo', label:'27. ¿Con qué otros actores podría articularse?', type:'textarea' },
+
+  // ---- Sección 6: Visitantes y demanda (solo actor activo) ----
+  { id:'Q28_TipoVisitantes', section:6, showIf:'activo', label:'28. Tipo de visitantes que atiende', type:'checkbox',
+    options:['Residentes de San Cristóbal.','Visitantes de otras localidades de Bogotá.','Visitantes de otros municipios.','Turistas nacionales.','Turistas internacionales.','No recibe visitantes actualmente.'] },
+  { id:'Q29_CiudadesOrigen', section:6, showIf:'activo', label:'29. Ciudades/municipios de origen principal', type:'textarea' },
+  { id:'Q30_PaisesOrigen', section:6, showIf:'activo', label:'30. Países de origen de visitantes internacionales', type:'textarea' },
+  { id:'Q31_ComoConocieron', section:6, showIf:'activo', label:'31. ¿Cómo conocieron el lugar?', type:'checkbox',
+    options:['Voz a voz/recomendación','Redes sociales','Página web','Publicidad','Eventos o ferias','Agencias u operadores turísticos','Instituciones educativas','Hoteles/alojamientos','Guías turísticos','Otro'] },
+  { id:'Q32_EdadPredominante', section:6, showIf:'activo', label:'32. Grupo de edad predominante', type:'select', options:['Niños','Adolescentes','Jóvenes','Adultos','Adultos mayores','Público diverso','No tiene información'] },
+  { id:'Q33_GeneroPredominante', section:6, showIf:'activo', label:'33. Género predominante', type:'select', options:['Mujeres','Hombres','Mixto/equilibrado','No tiene información'] },
+  { id:'Q34_TipoPoblacion', section:6, showIf:'activo', label:'34. Tipo de población que atiende', type:'checkbox',
+    options:['Familias','Jóvenes','Adultos','Adultos mayores','Colegios','Universidades','Empresas','Grupos comunitarios','Parejas','Otro'] },
+  { id:'Q35_ComoLlegan', section:6, showIf:'activo', label:'35. ¿Cómo suelen llegar los visitantes?', type:'checkbox',
+    options:['Solos','En pareja','Con familia','Con amigos','Grupos organizados','Colegios','Empresas','Otro'] },
+  { id:'Q36_MedioTransporte', section:6, showIf:'activo', label:'36. ¿Cómo llegan principalmente al lugar?', type:'select',
+    options:['A pie','Transporte público','Vehículo particular','Transporte turístico','Bicicleta','Otro'] },
+  { id:'Q37_PromedioVisitantes', section:6, showIf:'activo', label:'37. Promedio de visitantes', type:'select',
+    options:['Menos de 10','10-20','21-50','51-100','Más de 100','No sabe/no lleva registro'] },
+  { id:'Q38_MomentosAfluencia', section:6, showIf:'activo', label:'38. Días/momentos de mayor afluencia', type:'checkbox',
+    options:['Entre semana','Fines de semana','Festivos','Vacaciones','Semana Santa','Eventos especiales','Otra temporada'] },
+  { id:'Q39_TiempoPermanencia', section:6, showIf:'activo', label:'39. Tiempo de permanencia del visitante', type:'select',
+    options:['Menos de 30 minutos','30 minutos-1 hora','1-2 horas','2-4 horas','Más de 4 horas'] },
+
+  // ---- Sección 7: Promoción, comunicación y ventas digitales (solo activo) ----
+  { id:'Q40_MediosPromocion', section:7, showIf:'activo', label:'40. Medios que utiliza para promocionar', type:'checkbox',
+    options:['Instagram','Facebook','TikTok','YouTube','WhatsApp/WhatsApp Business','Página web','Voz a voz','Eventos/ferias','Publicidad física','Alianzas','Otro','Ninguno'] },
+  { id:'Q41_EnlacesRedes', section:7, showIf:'activo', label:'41. Enlaces de redes sociales o página web', type:'textarea' },
+  { id:'Q42_PiezasPromocion', section:7, showIf:'activo', label:'42. ¿Cuenta con piezas de promoción?', type:'select', options:['Sí, digitales.','Sí, impresas.','Ambas.','No.'] },
+  { id:'Q43_VentasDigitales', section:7, showIf:'activo', label:'43. ¿Realiza ventas/reservas por medios digitales?', type:'select', options:['Sí.','Parcialmente.','No.'] },
+  { id:'Q44_PrincipalCanal', section:7, showIf:'activo', label:'44. Principal canal de promoción', type:'select',
+    options:['Instagram','Facebook','TikTok','WhatsApp','Página web','Voz a voz','Eventos/ferias','Publicidad física','Alianzas','Otro','Ninguno'] },
+  { id:'Q45_MediosPago', section:7, showIf:'activo', label:'45. Medios de pago que utilizan sus clientes', type:'checkbox',
+    options:['Efectivo','Tarjeta débito','Tarjeta crédito','Transferencia bancaria','Nequi','Daviplata','QR','Otro'] },
+
+  // ---- Sección 8: Economía, empleo y aporte local (solo activo) ----
+  { id:'Q46_PersonasTrabajan', section:8, showIf:'activo', label:'46. Personas que trabajan en la actividad', type:'number' },
+  { id:'Q47_TrabajanSanCristobal', section:8, showIf:'activo', label:'47. De ellas, ¿cuántas viven en San Cristóbal?', type:'number' },
+  { id:'Q48_ComprasProveedoresLocales', section:8, showIf:'activo', label:'48. ¿Compra a proveedores de San Cristóbal?', type:'select', options:['Sí, principalmente.','Sí, parcialmente.','Muy poco.','No.'] },
+  { id:'Q49_PrincipalFuenteIngresos', section:8, showIf:'activo', label:'49. Principal fuente de ingresos', type:'checkbox',
+    options:['Actividad turística','Residentes/locales','Empresas','Instituciones','Eventos','Otra'] },
+  { id:'Q50_CostosOperativos', section:8, showIf:'activo', label:'50. Principales costos operativos', type:'checkbox',
+    options:['Arriendo','Servicios públicos','Personal','Insumos','Transporte','Impuestos/trámites','Publicidad','Mantenimiento','Otro'] },
+  { id:'Q51_PorcentajeComprasLocales', section:8, showIf:'activo', label:'51. % de compras a proveedores locales', type:'select',
+    options:['Menos del 25%','25-50%','51-75%','Más del 75%','No sabe'] },
+  { id:'Q52_PorcentajeIngresosTuristicos', section:8, showIf:'activo', label:'52. % de ingresos proveniente de turismo', type:'select',
+    options:['Menos del 25%','25-50%','51-75%','Más del 75%','No sabe/no aplica'] },
+  { id:'Q53_PrincipalNecesidad', section:8, showIf:'potencial_o_activo', label:'53. Principal necesidad para fortalecer la actividad', type:'checkbox',
+    options:['Financiación','Formación','Marketing','Comercialización','Diseño de producto turístico','Diseño de experiencias','Formalización','Infraestructura','Equipamiento','Seguridad','Accesibilidad','Articulación con otros actores','Otra'] },
+
+  // ---- Sección 9: Sostenibilidad ambiental (potencial o activo) ----
+  { id:'Q54_SeparacionResiduos', section:9, showIf:'potencial_o_activo', label:'54. ¿Realiza separación de residuos?', type:'select', options:['Sí, permanentemente.','Algunas veces.','No.'] },
+  { id:'Q55_AhorroAguaEnergia', section:9, showIf:'potencial_o_activo', label:'55. Acciones de ahorro de agua/energía', type:'checkbox',
+    options:['Ahorro de agua','Ahorro de energía','Uso de iluminación eficiente','Reutilización','Aprovechamiento de luz natural','Otra','Ninguna'] },
+  { id:'Q56_OtraSostenibilidad', section:9, showIf:'potencial_o_activo', label:'56. Otra acción de sostenibilidad ambiental', type:'textarea' },
+
+  // ---- Sección 10: Formalización (solo si aplica - potencial o activo) ----
+  { id:'Q57_RUT', section:10, showIf:'potencial_o_activo', label:'57. ¿Cuenta con RUT?', type:'select', options:['Sí.','No.','En trámite.','No aplica.','Prefiere no responder.'] },
+  { id:'Q58_CamaraComercio', section:10, showIf:'potencial_o_activo', label:'58. ¿Registro en Cámara de Comercio?', type:'select', options:['Sí.','No.','En trámite.','No aplica.','Prefiere no responder.'] },
+  { id:'Q59_RNT', section:10, showIf:'potencial_o_activo', label:'59. ¿Cuenta con RNT?', type:'select', options:['Sí.','No.','En trámite.','No aplica.','No sabe.'] },
+
+  // ---- Sección 11: Necesidades del visitante y articulación (siempre, aun sin vínculo) ----
+  { id:'Q60_NecesidadesVisitantes', section:11, label:'60. Necesidades que identifica en sus visitantes', type:'checkbox',
+    options:['Información turística','Señalización','Transporte','Seguridad','Baños','Alimentación','Lugares para descansar','Conectividad','Guianza','Accesibilidad','Información en otros idiomas','Actividades culturales','Actividades de naturaleza','Otra'] },
+  { id:'Q61_NecesidadNoAtendida', section:11, label:'61. Necesidad de los visitantes que no puede atender', type:'textarea' },
+  { id:'Q62_InteresParticipar', section:11, label:'62. ¿Interesado en participar en una ruta/estrategia turística?', type:'select',
+    options:['Sí.','Sí, con condiciones.','No por ahora.','No sabe.'] },
+
+  // ---- Sección 12a: Observación del profesional (siempre - no la responde el entrevistado) ----
+  { id:'Q63_Infraestructura', section:12, profesional:true, label:'63. Infraestructura', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q64_Accesibilidad', section:12, profesional:true, label:'64. Accesibilidad', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q65_Senalizacion', section:12, profesional:true, label:'65. Señalización', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q66_Higiene', section:12, profesional:true, label:'66. Higiene', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q67_Seguridad', section:12, profesional:true, label:'67. Seguridad', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q68_AtencionVisitante', section:12, profesional:true, label:'68. Atención al visitante', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q69_CalidadProducto', section:12, profesional:true, label:'69. Calidad del producto/servicio', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q70_CapacidadRecibir', section:12, profesional:true, label:'70. Capacidad para recibir visitantes', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q71_Sostenibilidad', section:12, profesional:true, label:'71. Sostenibilidad', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q72_GestionResiduos', section:12, profesional:true, label:'72. Gestión de residuos', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q73_AhorroAguaEnergiaEval', section:12, profesional:true, label:'73. Manejo/ahorro de agua y energía', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q74_PotencialRuta', section:12, profesional:true, label:'74. Potencial para integrarse a una ruta', type:'select', options:['Bueno','Regular','Deficiente','No aplica'] },
+  { id:'Q75_PotencialTuristico', section:12, profesional:true, label:'75. Calificación del potencial turístico', type:'select', options:['Alto','Medio','Bajo','No aplica'] },
+  { id:'Q76_IntegraDirectorio', section:12, profesional:true, label:'76. ¿Debe integrar el Directorio Turístico?', type:'select',
+    options:['Sí, como actor turístico.','Sí, como actor complementario.','Sí, como atractivo o recurso turístico.','Sí, como actor potencial.','No actualmente.','Pendiente de validación.'] },
+  { id:'Q77_RecomiendaRuta', section:12, profesional:true, label:'77. ¿Recomienda integrar a una ruta turística?', type:'select',
+    options:['Sí, directamente.','Sí, requiere fortalecimiento previo.','Potencialmente.','No por ahora.','No aplica.'] },
+  { id:'Q78_ObservacionProfesional', section:12, profesional:true, label:'78. Observación y concepto técnico (fortaleza, oportunidad, dificultad, ¿2da visita?, evidencia)', type:'textarea' },
+
+  // ---- Sección 12b: Evidencias (siempre) ----
+  { id:'Q79_FotoFachada', section:13, label:'79. Fotografía de la fachada o lugar (máx. 5)', type:'file', multiple:true },
+  { id:'Q80_FotoProducto', section:13, label:'80. Fotografía del producto/servicio (máx. 5)', type:'file', multiple:true },
+  { id:'Q81_FotoEntorno', section:13, label:'81. Fotografía del entorno (máx. 5)', type:'file', multiple:true },
+  { id:'Q82_EvidenciaDocumental', section:13, label:'82. Evidencia documental adicional (opcional, máx. 5)', type:'file', multiple:true },
+  { id:'Q83_Firma', section:13, label:'83. Firma', type:'file' }
+];
+
+var CARACT_SECTION_TITLES = {
+  2:'📋 Control de la visita', 3:'🎯 Filtro de vinculación turística (5 preguntas clave)',
+  4:'🏃 Actividad y trayectoria', 5:'💡 Oferta y potencial turístico', 6:'👥 Visitantes y demanda',
+  7:'📣 Promoción y ventas digitales', 8:'💰 Economía, empleo y aporte local', 9:'🌱 Sostenibilidad ambiental',
+  10:'⚖️ Formalización', 11:'🆘 Necesidades del visitante y articulación', 12:'📝 Observación del profesional',
+  13:'📸 Evidencias'
+};
+
+// Determina el "nivel de vínculo turístico" a partir de las 5 preguntas filtro (Q11-Q15)
+// NOTA para Jose: esta es mi interpretación de la lógica de salto del documento.
+// Revísala y ajusta los criterios si no coincide con lo que necesitas.
+function evaluarNivelVinculo(resp) {
+  var negativos = ['No actualmente.','No.','No está seguro/a.'];
+  var cantidadNegativos = ['Q11_RecibeVisitantes','Q12_OfreceAlgoInteres','Q13_VisitantesCompran','Q14_ProductoParaTuristas','Q15_PodriaIntegrarseRuta']
+    .filter(function(id){ return negativos.indexOf(resp[id]) !== -1; }).length;
+  if (cantidadNegativos >= 4) return 'sin_vinculo';       // Sección 3 -> directo a Necesidades/Observación/Evidencias
+  if (cantidadNegativos >= 2) return 'potencial';          // Sección 3 -> Actividad, Oferta, Sostenibilidad, Formalización, Necesidades, Observación, Evidencias
+  return 'activo';                                          // Sección 3 -> todo el formulario completo
+}
+
+function seccionVisible(showIf, nivel) {
+  if (!showIf) return true;
+  if (showIf === 'activo') return nivel === 'activo';
+  if (showIf === 'potencial_o_activo') return nivel === 'potencial' || nivel === 'activo';
+  return true;
+}
+
+function renderCampoCaracterizacion(q, valorActual) {
+  var val = valorActual || '';
+  if (q.type === 'text' || q.type === 'number' || q.type === 'date') {
+    return '<input type="'+q.type+'" id="carac-'+q.id+'" value="'+escapeHtml(String(val))+'">';
   }
-
-  var numCols = CARACT_HEADERS.length;
-
-  hoja.getRange(1, 1, 1, numCols).setValues([CARACT_HEADERS]);
-  hoja.setFrozenRows(1);
-
-  hoja.getBandings().forEach(function(b){ b.remove(); });
-
-  var rangoTabla = hoja.getRange(1, 1, 200, numCols);
-  var banding = rangoTabla.applyRowBanding(SpreadsheetApp.BandingTheme.CYAN, true, false);
-  banding.setHeaderRowColor('#0b3d22');
-  banding.setFirstRowColor('#ffffff');
-  banding.setSecondRowColor('#eef6f0');
-
-  hoja.getRange(1, 1, 1, numCols)
-    .setFontColor('#ffffff')
-    .setFontWeight('bold');
-
-  hoja.autoResizeColumns(1, numCols);
-
-  Logger.log('Listo: hoja "' + HOJA_CARACTERIZACION + '" creada/actualizada con formato de tabla (' + numCols + ' columnas).');
-}
-
-/* ---------- BUSCAR POR CONSECUTIVO (llamada desde doGet) ---------- */
-function buscarConsecutivoCaracterizacion_(consecutivo) {
-  if (!consecutivo) return jsonOut_({ ok: false, error: 'Falta el consecutivo' });
-
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  // 1) Datos base (hoja de respuestas del formulario de inscripción)
-  var hojaBase = obtenerHojaRespuestas_();
-  var infoBase = buscarFilaPorConsecutivoCaracterizacion_(hojaBase, consecutivo);
-  if (!infoBase) return jsonOut_({ ok: false, error: 'No existe ese consecutivo en la hoja de registros' });
-
-  // 2) Datos ya guardados de caracterización (si existen)
-  var hojaCarac = ss.getSheetByName(HOJA_CARACTERIZACION);
-  var infoCarac = hojaCarac ? (buscarFilaPorConsecutivoCaracterizacion_(hojaCarac, consecutivo) || {}) : {};
-
-  return jsonOut_({ ok: true, base: infoBase, caracterizacion: infoCarac });
-}
-
-function buscarFilaPorConsecutivoCaracterizacion_(hoja, consecutivo) {
-  var data = hoja.getDataRange().getValues();
-  var headers = data[0];
-  var colConsecutivo = headers.indexOf('Consecutivo');
-  if (colConsecutivo === -1) return null;
-
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][colConsecutivo]).trim() === String(consecutivo).trim()) {
-      var obj = {};
-      headers.forEach(function(h, idx){ obj[h] = data[i][idx]; });
-      return obj;
+  if (q.type === 'textarea') {
+    return '<textarea id="carac-'+q.id+'">'+escapeHtml(String(val))+'</textarea>';
+  }
+  if (q.type === 'select') {
+    return '<select id="carac-'+q.id+'">' + '<option value="">Seleccionar...</option>' +
+      q.options.map(function(o){ return '<option value="'+escapeHtml(o)+'"'+(val===o?' selected':'')+'>'+escapeHtml(o)+'</option>'; }).join('') +
+      '</select>';
+  }
+  if (q.type === 'checkbox') {
+    var seleccionados = String(val).split(',').map(function(s){return s.trim();});
+    return '<div class="carac-check-list">' + q.options.map(function(o, idx){
+      var checked = seleccionados.indexOf(o) !== -1 ? ' checked' : '';
+      return '<label class="carac-check-item">' +
+        '<input type="checkbox" class="carac-chk-'+q.id+'" value="'+escapeHtml(o)+'"'+checked+'> '+escapeHtml(o)+'</label>';
+    }).join('') + '</div>';
+  }
+  if (q.type === 'file') {
+    var enlacesHtml = '';
+    if (val) {
+      var urlsGuardadas = String(val).split(',').map(function(s){return s.trim();}).filter(Boolean);
+      enlacesHtml = urlsGuardadas.map(function(u, idx){
+        return '<div style="margin-bottom:2px;"><a href="'+escapeHtml(u)+'" target="_blank">Ver archivo'+(urlsGuardadas.length>1?(' '+(idx+1)):'')+' ↗</a></div>';
+      }).join('');
     }
+    var atributoMultiple = q.multiple ? ' multiple' : '';
+    return enlacesHtml + '<input type="file" id="carac-'+q.id+'" accept="image/*,.pdf"'+atributoMultiple+'>';
   }
-  return null;
+  return '';
 }
 
-/* ---------- GUARDAR FICHA DE CARACTERIZACIÓN (upsert, llamada desde doPost) ---------- */
-function guardarCaracterizacionSCT_(body) {
-  var consecutivo = body.consecutivo;
-  if (!consecutivo) return { ok: false, error: 'Falta el consecutivo' };
+function renderFormularioCaracterizacion(consecutivo, datosExistentes) {
+  var nivel = evaluarNivelVinculo(datosExistentes || {});
+  var secciones = {};
+  CARACT_QUESTIONS.forEach(function(q){
+    if (!seccionVisible(q.showIf, nivel)) return;
+    secciones[q.section] = secciones[q.section] || [];
+    secciones[q.section].push(q);
+  });
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var hoja = ss.getSheetByName(HOJA_CARACTERIZACION);
-  if (!hoja) return { ok: false, error: 'No existe la hoja "Caracterizacion". Corre primero crearHojaCaracterizacion().' };
+  var html = Object.keys(secciones).sort(function(a,b){return a-b;}).map(function(sec){
+    var campos = secciones[sec].map(function(q){
+      var esFull = (q.type === 'textarea' || q.type === 'checkbox' || q.type === 'file');
+      return '<div class="detail-item'+(esFull?' detail-item-full':'')+'"><div class="detail-label">'+escapeHtml(q.label)+(q.required?' *':'')+'</div>' +
+        renderCampoCaracterizacion(q, (datosExistentes||{})[q.id]) + '</div>';
+    }).join('');
+    return '<div class="detail-section"><div class="detail-section-title">'+CARACT_SECTION_TITLES[sec]+'</div>' +
+      '<div class="carac-grid">'+campos+'</div></div>';
+  }).join('');
 
-  var respuestas = body.respuestas || {};
-  ['Q79_FotoFachada','Q80_FotoProducto','Q81_FotoEntorno','Q82_EvidenciaDocumental','Q83_Firma'].forEach(function(campo){
-    var archivo = respuestas[campo];
-    if (Array.isArray(archivo)) {
-      var urls = archivo
-        .filter(function(a){ return a && a.base64 && a.nombre; })
-        .map(function(a){ return subirArchivoDriveCaracterizacion_(a, consecutivo, campo); });
-      if (urls.length) respuestas[campo] = urls.join(', ');
-    } else if (archivo && archivo.base64 && archivo.nombre) {
-      respuestas[campo] = subirArchivoDriveCaracterizacion_(archivo, consecutivo, campo);
+  var yaTeniaDatos = datosExistentes && String(datosExistentes.EstadoFicha || '').trim() === 'Completada';
+  var botonCancelar = yaTeniaDatos
+    ? ' <button class="btn" style="width:auto;background:#fff;border:1px solid var(--line);color:var(--muted);" onclick="mostrarFichaConsulta(\''+consecutivo+'\')">↩ Cancelar</button>'
+    : '';
+
+  return '<div id="caracForm-'+consecutivo+'">' + html +
+    '<div style="margin-top:14px;"><button class="btn btn-primary" style="width:auto;" onclick="guardarFichaCaracterizacion(\''+consecutivo+'\')">💾 Guardar ficha</button>' +
+    botonCancelar +
+    '<div class="approval-msg" id="caracMsg-'+consecutivo+'"></div></div></div>';
+}
+
+var CARAC_CACHE = {};
+
+function formatoValorConsulta(q, val) {
+  if (val === undefined || val === null || String(val).trim() === '') {
+    return '<span class="cell-empty">N/A</span>';
+  }
+  if (q.type === 'file') {
+    return '<a href="'+escapeHtml(String(val))+'" target="_blank">Ver archivo ↗</a>';
+  }
+  return escapeHtml(String(val));
+}
+
+function renderFichaConsulta(consecutivo, datos) {
+  var nivel = evaluarNivelVinculo(datos || {});
+  var secciones = {};
+  CARACT_QUESTIONS.forEach(function(q){
+    if (!seccionVisible(q.showIf, nivel)) return;
+    secciones[q.section] = secciones[q.section] || [];
+    secciones[q.section].push(q);
+  });
+
+  var html = Object.keys(secciones).sort(function(a,b){return a-b;}).map(function(sec){
+    var campos = secciones[sec].map(function(q){
+      return '<div class="detail-item"><div class="detail-label">'+escapeHtml(q.label)+'</div>' +
+        '<div class="detail-value">'+formatoValorConsulta(q, (datos||{})[q.id])+'</div></div>';
+    }).join('');
+    return '<div class="detail-section"><div class="detail-section-title">'+CARACT_SECTION_TITLES[sec]+'</div>' +
+      '<div class="carac-grid">'+campos+'</div></div>';
+  }).join('');
+
+  var linkPdf = (datos && datos.PDF_Ficha)
+    ? '<div style="margin-bottom:14px;"><a href="'+escapeHtml(String(datos.PDF_Ficha))+'" target="_blank" class="btn btn-primary" style="width:auto;display:inline-flex;">📄 Ver PDF de la ficha ↗</a></div>'
+    : '';
+
+  return '<div>' + linkPdf + html +
+    '<div style="margin-top:14px;"><button class="btn btn-primary" style="width:auto;" onclick="mostrarFormularioEdicion(\''+consecutivo+'\')">✏️ Volver a llenar</button></div></div>';
+}
+
+function mostrarFormularioEdicion(consecutivo) {
+  var contenedor = document.getElementById('caracContainer-' + consecutivo);
+  var datos = (CARAC_CACHE[consecutivo] || {}).caracterizacion || {};
+  contenedor.innerHTML = renderFormularioCaracterizacion(consecutivo, datos);
+}
+
+function mostrarFichaConsulta(consecutivo) {
+  var contenedor = document.getElementById('caracContainer-' + consecutivo);
+  var datos = (CARAC_CACHE[consecutivo] || {}).caracterizacion || {};
+  contenedor.innerHTML = renderFichaConsulta(consecutivo, datos);
+}
+
+// Se llama cuando el colaborador abre por primera vez el acordeón "Ficha de Caracterización"
+function abrirFichaCaracterizacion(consecutivo) {
+  var contenedor = document.getElementById('caracContainer-' + consecutivo);
+  contenedor.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando ficha...</div>';
+
+  fetch(WEBAPP_URL + '?accion=buscarConsecutivo&consecutivo=' + encodeURIComponent(consecutivo))
+    .then(function(r){ return r.json(); })
+    .then(function(resp){
+      if (!resp.ok) { contenedor.innerHTML = '<div class="alert-error">⚠️ '+resp.error+'</div>'; return; }
+      CARAC_CACHE[consecutivo] = resp;
+      var yaCompletada = resp.caracterizacion && String(resp.caracterizacion.EstadoFicha || '').trim() === 'Completada';
+      contenedor.innerHTML = yaCompletada
+        ? renderFichaConsulta(consecutivo, resp.caracterizacion)
+        : renderFormularioCaracterizacion(consecutivo, resp.caracterizacion);
+    })
+    .catch(function(err){
+      contenedor.innerHTML = '<div class="alert-error">⚠️ Error de conexión: '+err.message+'</div>';
+    });
+}
+
+function leerArchivosBase64(inputId, multiple, etiquetaCampo) {
+  return new Promise(function(resolve, reject){
+    var input = document.getElementById(inputId);
+    if (!input || !input.files || !input.files.length) { resolve(multiple ? [] : null); return; }
+
+    var archivos = Array.prototype.slice.call(input.files);
+
+    if (multiple && archivos.length > 5) {
+      reject(new Error('Máximo 5 archivos en "'+etiquetaCampo+'" (subiste '+archivos.length+').'));
+      return;
+    }
+    if (!multiple) archivos = archivos.slice(0, 1);
+
+    Promise.all(archivos.map(function(file){
+      return new Promise(function(res){
+        var reader = new FileReader();
+        reader.onload = function(){
+          res({ nombre: file.name, tipo: file.type, base64: reader.result.split(',')[1] });
+        };
+        reader.readAsDataURL(file);
+      });
+    })).then(function(lista){
+      resolve(multiple ? lista : (lista[0] || null));
+    });
+  });
+}
+
+function guardarFichaCaracterizacion(consecutivo) {
+  var msg = document.getElementById('caracMsg-' + consecutivo);
+  msg.textContent = 'Guardando...'; msg.className = 'approval-msg';
+
+  var respuestas = {};
+  var pendientesArchivos = [];
+  var erroresArchivos = [];
+
+  CARACT_QUESTIONS.forEach(function(q){
+    if (q.type === 'checkbox') {
+      var marcados = Array.prototype.slice.call(document.querySelectorAll('.carac-chk-'+q.id+':checked')).map(function(c){return c.value;});
+      if (marcados.length) respuestas[q.id] = marcados.join(', ');
+    } else if (q.type === 'file') {
+      pendientesArchivos.push(
+        leerArchivosBase64('carac-'+q.id, !!q.multiple, q.label)
+          .then(function(resultado){
+            var hayArchivo = q.multiple ? (resultado && resultado.length) : !!resultado;
+            if (hayArchivo) respuestas[q.id] = resultado;
+          })
+          .catch(function(err){ erroresArchivos.push(err.message); })
+      );
+    } else {
+      var el = document.getElementById('carac-'+q.id);
+      if (el && el.value) respuestas[q.id] = el.value;
     }
   });
 
-  var data = hoja.getDataRange().getValues();
-  var headers = data[0];
-  var colConsecutivo = headers.indexOf('Consecutivo');
-  var filaExistente = -1;
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][colConsecutivo]).trim() === String(consecutivo).trim()) { filaExistente = i + 1; break; }
-  }
+  Promise.all(pendientesArchivos).then(function(){
+    if (erroresArchivos.length) {
+      msg.textContent = '⚠️ ' + erroresArchivos.join(' | ');
+      msg.classList.add('err');
+      return;
+    }
 
-  var fila = headers.map(function(h){
-    if (h === 'Consecutivo') return consecutivo;
-    if (h === 'EstadoFicha') return 'Completada';
-    if (h === 'UltimaActualizacion') return new Date();
-    return respuestas.hasOwnProperty(h) ? respuestas[h] : '';
+    fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'guardarCaracterizacion', consecutivo: consecutivo, respuestas: respuestas })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(resp){
+        if (!resp.ok) { msg.textContent = resp.error || 'No se pudo guardar.'; msg.classList.add('err'); return; }
+        msg.textContent = '✅ Ficha guardada correctamente.'; msg.classList.add('ok');
+        CARAC_CACHE[consecutivo] = CARAC_CACHE[consecutivo] || {};
+        CARAC_CACHE[consecutivo].caracterizacion = Object.assign({}, CARAC_CACHE[consecutivo].caracterizacion, respuestas, { EstadoFicha: 'Completada', PDF_Ficha: resp.pdfUrl || (CARAC_CACHE[consecutivo].caracterizacion||{}).PDF_Ficha });
+        setTimeout(function(){ mostrarFichaConsulta(consecutivo); }, 900);
+      })
+      .catch(function(err){ msg.textContent = 'Error de conexión: ' + err.message; msg.classList.add('err'); });
   });
+}
 
-  if (filaExistente > 0) {
-    hoja.getRange(filaExistente, 1, 1, fila.length).setValues([fila]);
-  } else {
-    hoja.appendRow(fila);
+
+function toggleAcc(id) {
+  var header = document.getElementById("acchead-" + id);
+  var detail = document.getElementById("accdetail-" + id);
+  var isOpen = header.classList.contains("open");
+  header.classList.toggle("open", !isOpen);
+  detail.classList.toggle("open", !isOpen);
+}
+
+function guardarAprobacion(tab, i, consecutivo) {
+  var id = tab + '-' + i;
+  var estadoEl = document.getElementById('estado-' + id);
+  var comentarioEl = document.getElementById('comentario-' + id);
+  var msg = document.getElementById('msg-' + id);
+  var btn = document.getElementById('btnGuardar-' + id);
+
+  var estado = estadoEl.value.trim();
+  var comentario = comentarioEl.value.trim();
+  msg.textContent = '';
+  msg.className = 'approval-msg';
+
+  if (!estado) { msg.textContent = 'Selecciona un estado.'; msg.classList.add('err'); return; }
+  if (!comentario) { msg.textContent = 'Escribe un comentario.'; msg.classList.add('err'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ accion: 'guardarAprobacionWeb', consecutivo: consecutivo, estado: estado, comentario: comentario })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(resp){
+      btn.disabled = false;
+      btn.textContent = 'Guardar';
+      if (!resp.ok) {
+        msg.textContent = resp.error || 'No se pudo guardar.';
+        msg.classList.add('err');
+        return;
+      }
+      DATA[tab][i]['Aprobaciones'] = resp.estado || estado;
+      DATA[tab][i]['Comentarios'] = resp.comentarios || comentario;
+      renderAccordion(tab);
+      filterRows();
+      toggleAcc(id);
+    })
+    .catch(function(err){
+      btn.disabled = false;
+      btn.textContent = 'Guardar';
+      msg.textContent = 'Error de conexión: ' + err.message;
+      msg.classList.add('err');
+    });
+}
+
+function loadTab(tab) {
+  fetch(CSV_URLS[tab])
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+    .then(function(text){
+      var parsed = toObjects(parseCSV(text), EXCLUDED_COLUMNS[tab]);
+      HEADERS[tab] = parsed.headers;
+      DATA[tab] = parsed.data;
+      document.getElementById("loading-"+tab).style.display = "none";
+      document.getElementById("count-"+tab).textContent = DATA[tab].length;
+      if (!DATA[tab].length) {
+        document.getElementById("empty-"+tab).style.display = "block";
+        if (tab === 'delirio') renderStatsDelirio();
+        return;
+      }
+      var isAccordion = ACCORDION_TABS.indexOf(tab) !== -1;
+      if (isAccordion) {
+        renderAccordion(tab);
+        document.getElementById("acclist-"+tab).style.display = "block";
+      } else {
+        renderTable(tab);
+        document.getElementById("tablecard-"+tab).style.display = "block";
+      }
+      if (tab === currentTab) filterRows();
+    })
+    .catch(function(err){
+      document.getElementById("loading-"+tab).innerHTML =
+        '<div class="alert-error">⚠️ No se pudo cargar la hoja. ('+err.message+')</div>';
+    });
+}
+
+function cargarTodo() {
+  loadTab("delirio");
+  loadTab("simposio");
+  loadTab("rutas");
+  loadTab("creadores");
+  loadTab("visita");
+}
+
+function filterRows() {
+  var q = document.getElementById("searchInput").value.toLowerCase().trim();
+  var isAccordion = ACCORDION_TABS.indexOf(currentTab) !== -1;
+  var selector = isAccordion ? ("#acclist-"+currentTab+" .acc-row") : ("#table-"+currentTab+" tbody tr");
+  var rows = document.querySelectorAll(selector);
+  var vis = 0;
+  rows.forEach(function(r){
+    var match = !q || r.getAttribute("data-search").indexOf(q) !== -1;
+    r.style.display = match ? "" : "none";
+    if (match) vis++;
+  });
+  var empty = document.getElementById("empty-"+currentTab);
+  var container = document.getElementById((isAccordion ? "acclist-" : "tablecard-")+currentTab);
+  if (DATA[currentTab].length) {
+    empty.style.display = vis === 0 ? "block" : "none";
+    container.style.display = vis === 0 ? "none" : "block";
   }
-
-  return { ok: true };
+  document.getElementById("resultCount").textContent =
+    DATA[currentTab].length ? (vis + " de " + DATA[currentTab].length + " registros") : "";
 }
 
-function subirArchivoDriveCaracterizacion_(archivo, consecutivo, campo) {
-  var carpeta = obtenerOCrearSubcarpetaCaracterizacion_(consecutivo);
-  var bytes = Utilities.base64Decode(archivo.base64);
-  var blob = Utilities.newBlob(bytes, archivo.tipo || 'application/octet-stream', campo + '_' + archivo.nombre);
-  var file = carpeta.createFile(blob);
-  return file.getUrl();
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+  document.querySelectorAll(".tab-panel").forEach(function(p){ p.classList.remove("active"); });
+  var idx = ["delirio","simposio","rutas","creadores","visita"].indexOf(tab);
+  document.querySelectorAll(".tab-btn")[idx].classList.add("active");
+  document.getElementById("panel-"+tab).classList.add("active");
+  document.getElementById("searchInput").value = "";
+  filterRows();
 }
-
-function obtenerOCrearSubcarpetaCaracterizacion_(consecutivo) {
-  var carpetaRaiz = DriveApp.getFolderById(CARPETA_EVIDENCIAS_CARACTERIZACION_ID);
-  var nombreCarpeta = String(consecutivo).trim();
-
-  var it = carpetaRaiz.getFoldersByName(nombreCarpeta);
-  if (it.hasNext()) return it.next();
-
-  return carpetaRaiz.createFolder(nombreCarpeta);
-}
+</script>
+</body>
+</html>
